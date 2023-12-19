@@ -396,3 +396,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Drawio backup files
+**/.$*.drawio.bkp
+**/.$*.drawio.dtmp
