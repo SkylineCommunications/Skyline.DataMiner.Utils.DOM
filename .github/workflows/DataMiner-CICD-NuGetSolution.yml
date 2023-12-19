@@ -27,7 +27,7 @@ jobs:
       referenceType: ${{ github.ref_type }}
       repository: ${{ github.repository }}
       owner: ${{ github.repository_owner }}
-      sonarCloudProjectName: "SkylineCommunications_Skyline.DataMiner.Utils.DOMl"
+      sonarCloudProjectName: "SkylineCommunications_Skyline.DataMiner.Utils.DOM"
     secrets:
       sonarCloudToken: ${{ secrets.SONAR_TOKEN }}
       pfx: ${{ secrets.PFX }}
