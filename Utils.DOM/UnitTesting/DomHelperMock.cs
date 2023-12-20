@@ -2,37 +2,66 @@
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Linq;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
-	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Sections;
 
 	public class DomHelperMock : DomHelper
 	{
-		public DomHelperMock(ICollection<DomInstance> instances) : base(x => HandleMessages(x, instances), "module")
+		private readonly MockMessageHandler _messageHandler;
+
+		private DomHelperMock(MockMessageHandler messageHandler) : base(messageHandler.HandleMessages, "module")
 		{
+			_messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
 		}
 
-		private static DMSMessage[] HandleMessages(DMSMessage[] messages, IEnumerable<DomInstance> instances)
+		public static DomHelperMock Create()
 		{
-			var responses = new List<DMSMessage>();
+			var messageHandler = new MockMessageHandler();
+			return new DomHelperMock(messageHandler);
+		}
 
-			foreach (var message in messages)
+		public static DomHelperMock Create(IEnumerable<DomInstance> instances)
+		{
+			if (instances == null)
 			{
-				switch (message)
-				{
-					case ManagerStoreReadRequest<DomInstance> domInstanceReadRequest:
-						var domInstances = domInstanceReadRequest.Query
-							.ExecuteInMemory(instances)
-							.ToList();
-						responses.Add(new ManagerStoreCrudResponse<DomInstance>(domInstances));
-						break;
-					default:
-						throw new NotSupportedException($"Unsupported message type {message.GetType()}");
-				}
+				throw new ArgumentNullException(nameof(instances));
 			}
 
-			return responses.ToArray();
+			var mock = Create();
+			mock.SetInstances(instances);
+
+			return mock;
+		}
+
+		public void SetDefinitions(IEnumerable<DomDefinition> definitions)
+		{
+			if (definitions == null)
+			{
+				throw new ArgumentNullException(nameof(definitions));
+			}
+
+			_messageHandler.SetDefinitions(definitions);
+		}
+
+		public void SetSectionDefinitions(IEnumerable<SectionDefinition> sectionDefinitions)
+		{
+			if (sectionDefinitions == null)
+			{
+				throw new ArgumentNullException(nameof(sectionDefinitions));
+			}
+
+			_messageHandler.SetSectionDefinitions(sectionDefinitions);
+		}
+
+		public void SetInstances(IEnumerable<DomInstance> instances)
+		{
+			if (instances == null)
+			{
+				throw new ArgumentNullException(nameof(instances));
+			}
+
+			_messageHandler.SetInstances(instances);
 		}
 	}
 }
