@@ -52,6 +52,28 @@
 			return (T)this;
 		}
 
+		public T WithDefinition(DomDefinitionId definitionId)
+		{
+			if (definitionId == null)
+			{
+				throw new ArgumentNullException(nameof(definitionId));
+			}
+
+			_instance.DomDefinitionId = definitionId;
+
+			return (T)this;
+		}
+
+		public T WithDefinition(DomDefinition definition)
+		{
+			if (definition == null)
+			{
+				throw new ArgumentNullException(nameof(definition));
+			}
+
+			return WithDefinition(definition.ID);
+		}
+
 		public T AddSection(Section section)
 		{
 			if (section == null)

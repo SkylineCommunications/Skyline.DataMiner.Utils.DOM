@@ -10,7 +10,7 @@ namespace Skyline.DataMiner.Utils.DOM.UnitTesting
 	{
 		private readonly DomHelperMock _helper;
 
-		private DomCacheMock(DomHelperMock helper) : base(helper)
+		public DomCacheMock(DomHelperMock helper) : base(helper)
 		{
 			_helper = helper ?? throw new ArgumentNullException(nameof(helper));
 		}
