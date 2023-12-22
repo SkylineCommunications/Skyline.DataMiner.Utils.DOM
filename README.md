@@ -34,7 +34,7 @@ You will need to add the following NuGet packages to your automation project fro
 
 ### Caching
 
-The 'DomCache' class can be used to store DOM instances and definitions in memory. When an object is retrieved for the first time, it will be fetched from DataMiner and stored in memory.
+The `DomCache` class can be used to store DOM instances and definitions in memory. When an object is retrieved for the first time, it will be fetched from DataMiner and stored in memory.
 For subsequent requests with the same ID, the cached object is retrieved directly from memory. This will improve the performance, in scenarios where the same object is retrieved multiple times from DOM.
 
  ```cs
@@ -75,5 +75,29 @@ public DomInstance CreateDomInstance()
 
 ### Unit testing
 
+ ```cs
+var instances = new List<DomInstance>
+{
+	new DomInstanceBuilder(FleFlows.Definitions.Flow)
+		.WithID(Guid.Parse("d70834e1-f9b5-4551-b181-c6c59dbd2127"))
+		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowInfo.Id)
+			.WithFieldValue(FleFlows.Sections.FlowInfo.Name, "Source Flow 1"))
+		.Build(),
+	new DomInstanceBuilder(FleFlows.Definitions.Flow)
+		.WithID(Guid.Parse("c5776178-026d-4826-9801-9dd43bb1ccfb"))
+		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowInfo.Id)
+			.WithFieldValue(FleFlows.Sections.FlowInfo.Name, "Source Flow 2"))
+		.Build(),
+};
 
+var domHelper = DomHelperMock.Create(instances);
+var instance1 = domHelper.DomInstances.GetByID(Guid.Parse("d70834e1-f9b5-4551-b181-c6c59dbd2127"));
+```
+
+In the same way, `DomCacheMock` can be used to mock the `DomCache` class:
+
+ ```cs
+var instances = new List<DomInstance>();
+var domCache = DomCacheMock.Create(instances);
+```
 
