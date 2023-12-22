@@ -2,7 +2,9 @@
 
 ## About
 
-TODO
+### Skyline.DataMiner.Utils.DOM
+
+Provides a set of useful classes and extension methods that can be used to interact with [DataMiner Object Model (DOM)](https://docs.dataminer.services/user-guide/Advanced_Modules/DOM/DOM.html).
 
 ### About DataMiner
 
@@ -19,5 +21,59 @@ A unique catalog of 7000+ connectors already exists. In addition, you can levera
 
 At Skyline Communications, we deal with world-class solutions that are deployed by leading companies around the globe. Check out [our proven track record](https://aka.dataminer.services/about-skyline) and see how we make our customers' lives easier by empowering them to take their operations to the next level.
 
-<!-- Uncomment below and add more info to provide more information about how to use this package. -->
-<!-- ## Getting Started -->
+## Requirements
+
+The "DataMiner Integration Studio" Visual Studio extension is required for development of connectors and Automation scripts using NuGets.
+
+See [Installing DataMiner Integration Studio](https://aka.dataminer.services/DisInstallation)
+
+## Getting started
+
+You will need to add the following NuGet packages to your automation project from the public [NuGet store](https://www.nuget.org/):
+- Skyline.DataMiner.Utils.DOM
+
+### Caching
+
+The 'DomCache' class can be used to store DOM instances and definitions in memory. When an object is retrieved for the first time, it will be fetched from DataMiner and stored in memory.
+For subsequent requests with the same ID, the cached object is retrieved directly from memory. This will improve the performance, in scenarios where the same object is retrieved multiple times from DOM.
+
+ ```cs
+var guid = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-1234567890ab");
+var domCache = new DomCache(...);
+
+// will be retrieved from DMA
+var instance1 = domCache.GetInstanceById(guid);
+
+// will be retrieved from cache
+var instance2 = domCache.GetInstanceById(guid);
+```
+
+### Builders
+
+Quickly build DOM instances and sections.
+
+ ```cs
+public DomInstance CreateDomInstance()
+{
+	var instance = new DomInstanceBuilder(FleFlows.Definitions.Flow)
+		.WithID(_sourceFlowId1)
+		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowInfo.Id)
+			.WithFieldValue(FleFlows.Sections.FlowInfo.Name, "Source Flow 1"))
+		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowPath.Id)
+			.WithFieldValue(FleFlows.Sections.FlowPath.FlowDirection, (int)FleFlows.Enums.FlowDirection.Tx)
+			.WithFieldValue(FleFlows.Sections.FlowPath.Element, "123/1")
+			.WithFieldValue(FleFlows.Sections.FlowPath.Interface, "eth0"))
+		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowTransportIP.Id)
+			.WithFieldValue(FleFlows.Sections.FlowTransportIP.SourceIP, "10.20.30.5")
+			.WithFieldValue(FleFlows.Sections.FlowTransportIP.DestinationIP, "239.17.0.5")
+			.WithFieldValue(FleFlows.Sections.FlowTransportIP.DestinationPort, 5000))
+		.Build();
+
+	return instance;
+}
+```
+
+### Unit testing
+
+
+
