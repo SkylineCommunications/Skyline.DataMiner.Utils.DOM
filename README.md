@@ -2,7 +2,7 @@
 
 ## About
 
-### Skyline.DataMiner.Utils.DOM
+### About Skyline.DataMiner.Utils.DOM
 
 Provides a set of useful classes and extension methods that can be used to interact with [DataMiner Object Model (DOM)](https://docs.dataminer.services/user-guide/Advanced_Modules/DOM/DOM.html).
 
@@ -14,7 +14,7 @@ The foundation of DataMiner is its powerful and versatile data acquisition and c
 
 A unique catalog of 7000+ connectors already exists. In addition, you can leverage DataMiner Development Packages to build your own connectors (also known as "protocols" or "drivers").
 
-> **Note**
+> [!NOTE]
 > See also: [About DataMiner](https://aka.dataminer.services/about-dataminer).
 
 ### About Skyline Communications
@@ -40,6 +40,9 @@ TODO
 
 The `DomCache` class can be used to store DOM instances and definitions in memory. When an object is retrieved for the first time, it will be fetched from DataMiner and stored in memory.
 For subsequent requests with the same ID, the cached object is retrieved directly from memory. This will improve the performance, in scenarios where the same object is retrieved multiple times from DOM.
+
+> [!NOTE]
+> When a DOM object is being updated from an external location, it's not automatically updated in this cache as well. A new cache can be created to retrieve the latest version from the server again.
 
  ```cs
 var guid = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-1234567890ab");
