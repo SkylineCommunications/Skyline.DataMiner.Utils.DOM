@@ -9,6 +9,7 @@
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
+	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
 
@@ -66,6 +67,26 @@
 		}
 
 		[TestMethod]
+		public void DomCache_GetDefinitionById()
+		{
+			var cache = new DomCache(TestData.DomHelper);
+
+			var definition = cache.GetDefinitionById(TestData.Definition1.ID.Id);
+
+			definition.Should().Be(TestData.Definition1);
+		}
+
+		[TestMethod]
+		public void DomCache_GetDefinitionByName()
+		{
+			var cache = new DomCache(TestData.DomHelper);
+
+			var definition = cache.GetDefinitionByName(TestData.Definition1.Name);
+
+			definition.Should().Be(TestData.Definition1);
+		}
+
+		[TestMethod]
 		public void DomCache_GetSectionDefinitionById()
 		{
 			var cache = new DomCache(TestData.DomHelper);
@@ -83,6 +104,28 @@
 			var sectionDefinition = cache.GetSectionDefinitionByName(TestData.SectionDefinition1.GetName());
 
 			sectionDefinition.Should().Be(TestData.SectionDefinition1);
+		}
+
+		[TestMethod]
+		public void DomCache_GetFieldDescriptor()
+		{
+			var cache = new DomCache(TestData.DomHelper);
+
+			var fieldDescriptor = cache.GetFieldDescriptor(TestData.SectionDefinition1.GetID(), TestData.SectionDefinition1.GetFieldDescriptorByName("Field 1").ID);
+
+			fieldDescriptor.Should().BeAssignableTo<FieldDescriptor>();
+			fieldDescriptor.Name.Should().Be("Field 1");
+		}
+
+		[TestMethod]
+		public void DomCache_GetFieldDescriptorByName()
+		{
+			var cache = new DomCache(TestData.DomHelper);
+
+			var fieldDescriptor = cache.GetFieldDescriptorByName("Section Definition 1", "Field 1");
+
+			fieldDescriptor.Should().BeAssignableTo<FieldDescriptor>();
+			fieldDescriptor.Name.Should().Be("Field 1");
 		}
 	}
 }

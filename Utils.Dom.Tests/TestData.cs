@@ -64,6 +64,16 @@
 				.AddSection(new DomSectionBuilder(SectionDefinition1)
 					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 1"), "Value 2")
 					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 2"), 456))
+
+				// multiple sections
+				.AddSection(new DomSectionBuilder(SectionDefinition2)
+					.WithID(Guid.Parse("c4b62b86-ce85-46b4-9532-6197af7e6f15"))
+					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 1"), "Value 2")
+					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 2"), 456))
+				.AddSection(new DomSectionBuilder(SectionDefinition2)
+					.WithID(Guid.Parse("6b274338-e23f-47dc-8ca1-61a96c97449f"))
+					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 1"), "Value 2")
+					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 2"), 456))
 				.Build();
 	}
 }
