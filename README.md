@@ -29,8 +29,10 @@ See [Installing DataMiner Integration Studio](https://aka.dataminer.services/Dis
 
 ## Getting started
 
-You will need to add the following NuGet packages to your automation project from the public [NuGet store](https://www.nuget.org/):
-- Skyline.DataMiner.Utils.DOM
+To get started, the `Skyline.DataMiner.Utils.DOM` NuGet package needs to be added to the C# project from [nuget.org](https://www.nuget.org/packages/Skyline.DataMiner.Utils.DOM)
+For more information see https://docs.dataminer.services/develop/TOOLS/NuGet/Consuming_NuGet.html.
+
+### Extension methods
 
 ### Caching
 
@@ -50,7 +52,7 @@ var instance2 = domCache.GetInstanceById(guid);
 
 ### Builders
 
-Quickly build DOM instances and sections.
+Quickly build DOM instances and sections using the fluent builder pattern:
 
  ```cs
 public DomInstance CreateDomInstance()
@@ -75,7 +77,10 @@ public DomInstance CreateDomInstance()
 
 ### Unit testing
 
- ```cs
+Using the `DomHelperMock` and `DomCacheMock` classes it's possible to execute DOM queries completely on memory on a provided collection of DOM instances and definitions.
+These classes are derived from the `DomHelper` and `DomCache` classes, so the mocked object can directly be used in the code that should be unit tested.
+
+```cs
 var instances = new List<DomInstance>
 {
 	new DomInstanceBuilder(FleFlows.Definitions.Flow)
@@ -96,7 +101,7 @@ var instance1 = domHelper.DomInstances.GetByID(Guid.Parse("d70834e1-f9b5-4551-b1
 
 In the same way, `DomCacheMock` can be used to mock the `DomCache` class:
 
- ```cs
+```cs
 var instances = new List<DomInstance>();
 var domCache = DomCacheMock.Create(instances);
 ```
