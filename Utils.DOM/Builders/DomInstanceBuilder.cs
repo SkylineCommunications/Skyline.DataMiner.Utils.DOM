@@ -1,12 +1,12 @@
 ﻿namespace Skyline.DataMiner.Utils.DOM.Builders
 {
-    using System;
+	using System;
 
-    using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
-    using Skyline.DataMiner.Net.Sections;
-    using Skyline.DataMiner.Utils.DOM.Extensions;
+	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.Sections;
+	using Skyline.DataMiner.Utils.DOM.Extensions;
 
-    public class DomInstanceBuilder<T> where T : DomInstanceBuilder<T>
+	public class DomInstanceBuilder<T> where T : DomInstanceBuilder<T>
 	{
 		private readonly DomInstance _instance;
 
