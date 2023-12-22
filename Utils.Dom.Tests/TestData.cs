@@ -1,7 +1,6 @@
 ﻿namespace Utils.Dom.Tests
 {
 	using System;
-	using System.Collections.Generic;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.Sections;
@@ -66,6 +65,5 @@
 					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 1"), "Value 2")
 					.WithFieldValue(SectionDefinition1.GetFieldDescriptorByName("Field 2"), 456))
 				.Build();
-
 	}
 }

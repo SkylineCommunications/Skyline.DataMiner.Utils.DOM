@@ -1,11 +1,11 @@
 ﻿namespace Skyline.DataMiner.Utils.DOM.Builders
 {
-    using System;
+	using System;
 
-    using Skyline.DataMiner.Net.Sections;
-    using Skyline.DataMiner.Utils.DOM.Extensions;
+	using Skyline.DataMiner.Net.Sections;
+	using Skyline.DataMiner.Utils.DOM.Extensions;
 
-    public class DomSectionBuilder<T> where T : DomSectionBuilder<T>
+	public class DomSectionBuilder<T> where T : DomSectionBuilder<T>
 	{
 		private readonly Section _section;
 
