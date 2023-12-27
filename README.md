@@ -32,10 +32,6 @@ See [Installing DataMiner Integration Studio](https://aka.dataminer.services/Dis
 To get started, the `Skyline.DataMiner.Utils.DOM` NuGet package needs to be added to the C# project from [nuget.org](https://www.nuget.org/packages/Skyline.DataMiner.Utils.DOM)
 For more information see https://docs.dataminer.services/develop/TOOLS/NuGet/Consuming_NuGet.html.
 
-### Extension methods
-
-TODO
-
 ### Caching
 
 The `DomCache` class can be used to store DOM instances and definitions in memory. When an object is retrieved for the first time, it will be fetched from DataMiner and stored in memory.

@@ -11,7 +11,10 @@
     using Skyline.DataMiner.Net.Sections;
     using Skyline.DataMiner.Utils.DOM.Extensions;
 
-    public class DomCache
+	/// <summary>
+	/// Represents a cache for storing and retrieving DOM (DataMiner Object Model) objects.
+	/// </summary>
+	public class DomCache
 	{
 		private readonly ConcurrentDictionary<Guid, DomInstance> _instancesById = new ConcurrentDictionary<Guid, DomInstance>();
 		private readonly ConcurrentDictionary<DomDefinitionId, ICollection<DomInstance>> _instancesByDefinition = new ConcurrentDictionary<DomDefinitionId, ICollection<DomInstance>>();
@@ -22,11 +25,20 @@
 		private readonly ConcurrentDictionary<Guid, DomBehaviorDefinition> _behaviorDefinitionsById = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
 		private readonly ConcurrentDictionary<string, DomBehaviorDefinition> _behaviorDefinitonsByName = new ConcurrentDictionary<string, DomBehaviorDefinition>();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DomCache"/> class with a specified <see cref="DomHelper"/>.
+		/// </summary>
+		/// <param name="helper">The <see cref="DomHelper"/> used for interaction with the DOM.</param>
 		public DomCache(DomHelper helper)
 		{
 			Helper = helper ?? throw new ArgumentNullException(nameof(helper));
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="DomCache"/>.
+		/// </summary>
+		/// <param name="messageHandler">The message handler for processing messages.</param>
+		/// <param name="moduleId">The module ID associated with the DOM cache.</param>
 		public DomCache(Func<DMSMessage[], DMSMessage[]> messageHandler, string moduleId)
 		{
 			if (messageHandler == null)
@@ -42,13 +54,26 @@
 			Helper = new DomHelper(messageHandler, moduleId);
 		}
 
+		/// <summary>
+		/// Gets the <see cref="DomHelper"/> associated with the DOM cache.
+		/// </summary>
 		public DomHelper Helper { get; }
 
+		/// <summary>
+		/// Retrieves a DOM instance by its unique ID.
+		/// </summary>
+		/// <param name="id">The unique ID of the DOM instance.</param>
+		/// <returns>The <see cref="DomInstance"/> with the specified ID.</returns>
 		public DomInstance GetInstanceById(Guid id)
 		{
 			return _instancesById.GetOrAdd(id, Helper.DomInstances.GetByID);
 		}
 
+		/// <summary>
+		/// Retrieves a dictionary of DOM instances by their unique IDs.
+		/// </summary>
+		/// <param name="ids">The collection of unique IDs of DOM instances.</param>
+		/// <returns>A dictionary containing the <see cref="DomInstance"/> objects with their respective IDs.</returns>
 		public IDictionary<Guid, DomInstance> GetInstancesById(IEnumerable<Guid> ids)
 		{
 			if (ids == null)
@@ -84,6 +109,11 @@
 			return result;
 		}
 
+		/// <summary>
+		/// Retrieves a collection of DOM instances based on a specified filter.
+		/// </summary>
+		/// <param name="filter">The filter condition for selecting DOM instances.</param>
+		/// <returns>A collection of <see cref="DomInstance"/> objects that match the filter condition.</returns>
 		public ICollection<DomInstance> GetInstances(FilterElement<DomInstance> filter)
 		{
 			if (filter == null)
@@ -104,6 +134,11 @@
 			return result;
 		}
 
+		/// <summary>
+		/// Retrieves a collection of DOM instances associated with a specific definition.
+		/// </summary>
+		/// <param name="definitionName">The name of the DOM definition.</param>
+		/// <returns>A collection of <see cref="DomInstance"/> objects associated with the specified definition.</returns>
 		public ICollection<DomInstance> GetInstancesByDefinition(string definitionName)
 		{
 			if (String.IsNullOrWhiteSpace(definitionName))
@@ -113,14 +148,16 @@
 
 			var definition = GetDefinitionByName(definitionName);
 
-			if (definition == null)
-			{
-				throw new ArgumentException($"Couldn't find definition with name '{definitionName}'");
-			}
-
-			return GetInstancesByDefinition(definition);
+			return definition != null
+				? GetInstancesByDefinition(definition)
+				: throw new ArgumentException($"Couldn't find definition with name '{definitionName}'");
 		}
 
+		/// <summary>
+		/// Retrieves a collection of DOM instances associated with a specific definition.
+		/// </summary>
+		/// <param name="definition">The DOM definition object.</param>
+		/// <returns>A collection of <see cref="DomInstance"/> objects associated with the specified definition.</returns>
 		public ICollection<DomInstance> GetInstancesByDefinition(DomDefinition definition)
 		{
 			if (definition == null)
@@ -131,6 +168,11 @@
 			return GetInstancesByDefinition(definition.ID);
 		}
 
+		/// <summary>
+		/// Retrieves a collection of DOM instances associated with a specific definition ID.
+		/// </summary>
+		/// <param name="definitionID">The unique ID of the DOM definition.</param>
+		/// <returns>A collection of <see cref="DomInstance"/> objects associated with the specified definition ID.</returns>
 		public ICollection<DomInstance> GetInstancesByDefinition(DomDefinitionId definitionID)
 		{
 			if (definitionID == null)
@@ -153,6 +195,11 @@
 				});
 		}
 
+		/// <summary>
+		/// Retrieves a DOM definition by its unique ID.
+		/// </summary>
+		/// <param name="id">The unique ID of the DOM definition.</param>
+		/// <returns>The <see cref="DomDefinition"/> with the specified ID.</returns>
 		public DomDefinition GetDefinitionById(Guid id)
 		{
 			var definition = _definitionsById.GetOrAdd(id, Helper.DomDefinitions.GetByID);
@@ -165,6 +212,11 @@
 			return definition;
 		}
 
+		/// <summary>
+		/// Retrieves a DOM definition by its name.
+		/// </summary>
+		/// <param name="name">The name of the DOM definition.</param>
+		/// <returns>The <see cref="DomDefinition"/> with the specified name.</returns>
 		public DomDefinition GetDefinitionByName(string name)
 		{
 			if (String.IsNullOrWhiteSpace(name))
@@ -182,6 +234,11 @@
 			return definition;
 		}
 
+		/// <summary>
+		/// Retrieves a section definition by its unique ID.
+		/// </summary>
+		/// <param name="id">The unique ID of the section definition.</param>
+		/// <returns>The <see cref="SectionDefinition"/> with the specified ID.</returns>
 		public SectionDefinition GetSectionDefinitionById(Guid id)
 		{
 			var definition = _sectionDefinitionsById.GetOrAdd(id, Helper.SectionDefinitions.GetByID);
@@ -194,6 +251,11 @@
 			return definition;
 		}
 
+		/// <summary>
+		/// Retrieves a section definition by its name.
+		/// </summary>
+		/// <param name="name">The name of the section definition.</param>
+		/// <returns>The <see cref="SectionDefinition"/> with the specified name.</returns>
 		public SectionDefinition GetSectionDefinitionByName(string name)
 		{
 			if (String.IsNullOrWhiteSpace(name))
@@ -211,6 +273,12 @@
 			return definition;
 		}
 
+		/// <summary>
+		/// Retrieves a field descriptor by section definition name and field name.
+		/// </summary>
+		/// <param name="sectionDefinitionName">The name of the section definition.</param>
+		/// <param name="fieldName">The name of the field.</param>
+		/// <returns>The <see cref="FieldDescriptor"/> with the specified section definition name and field name.</returns>
 		public FieldDescriptor GetFieldDescriptorByName(string sectionDefinitionName, string fieldName)
 		{
 			if (String.IsNullOrWhiteSpace(sectionDefinitionName))
@@ -226,6 +294,12 @@
 			return GetSectionDefinitionByName(sectionDefinitionName).GetFieldDescriptorByName(fieldName);
 		}
 
+		/// <summary>
+		/// Retrieves a field descriptor by section definition ID and field descriptor ID.
+		/// </summary>
+		/// <param name="sectionDefinitionID">The unique ID of the section definition.</param>
+		/// <param name="fieldDescriptorID">The unique ID of the field descriptor.</param>
+		/// <returns>The <see cref="FieldDescriptor"/> with the specified section definition ID and field descriptor ID.</returns>
 		public FieldDescriptor GetFieldDescriptor(SectionDefinitionID sectionDefinitionID, FieldDescriptorID fieldDescriptorID)
 		{
 			if (sectionDefinitionID == null)
@@ -241,6 +315,11 @@
 			return GetSectionDefinitionById(sectionDefinitionID.Id).GetFieldDescriptorById(fieldDescriptorID);
 		}
 
+		/// <summary>
+		/// Retrieves a DOM behavior definition by its unique ID.
+		/// </summary>
+		/// <param name="id">The unique ID of the DOM behavior definition.</param>
+		/// <returns>The <see cref="DomBehaviorDefinition"/> with the specified ID.</returns>
 		public DomBehaviorDefinition GetBehaviorDefinitionById(Guid id)
 		{
 			var behaviorDefinition = _behaviorDefinitionsById.GetOrAdd(id, Helper.DomBehaviorDefinitions.GetById);
@@ -253,6 +332,11 @@
 			return behaviorDefinition;
 		}
 
+		/// <summary>
+		/// Retrieves a DOM behavior definition by its name.
+		/// </summary>
+		/// <param name="name">The name of the DOM behavior definition.</param>
+		/// <returns>The <see cref="DomBehaviorDefinition"/> with the specified name.</returns>
 		public DomBehaviorDefinition GetBehaviorDefinitionByName(string name)
 		{
 			if (String.IsNullOrWhiteSpace(name))
