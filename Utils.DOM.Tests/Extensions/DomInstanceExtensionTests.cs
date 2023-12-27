@@ -1,4 +1,4 @@
-﻿namespace Utils.Dom.Tests
+﻿namespace Utils.DOM.Tests.Extensions
 {
 	using System;
 	using System.Linq;

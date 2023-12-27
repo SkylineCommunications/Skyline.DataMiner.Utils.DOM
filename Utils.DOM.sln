@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils.DOM", "Utils.DOM\Utils.DOM.csproj", "{8A3E61A8-6D79-40F1-9472-95684E76376C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils.DOM", "Utils.DOM\Utils.DOM.csproj", "{8A3E61A8-6D79-40F1-9472-95684E76376C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils.Dom.Tests", "Utils.Dom.Tests\Utils.Dom.Tests.csproj", "{AA26AA8D-480F-41D1-A8DE-FAF9CB0DFB04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils.DOM.Tests", "Utils.Dom.Tests\Utils.DOM.Tests.csproj", "{AA26AA8D-480F-41D1-A8DE-FAF9CB0DFB04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

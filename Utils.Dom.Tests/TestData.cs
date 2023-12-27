@@ -1,4 +1,4 @@
-﻿namespace Utils.Dom.Tests
+﻿namespace Utils.DOM.Tests
 {
 	using System;
 
