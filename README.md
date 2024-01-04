@@ -60,13 +60,13 @@ public DomInstance CreateDomInstance()
 {
 	var instance = new DomInstanceBuilder(FleFlows.Definitions.Flow)
 		.WithID(_sourceFlowId1)
-		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowInfo.Id)
+		.AddSection(FleFlows.Sections.FlowInfo.Id, b => b
 			.WithFieldValue(FleFlows.Sections.FlowInfo.Name, "Source Flow 1"))
-		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowPath.Id)
+		.AddSection(FleFlows.Sections.FlowPath.Id, b => b
 			.WithFieldValue(FleFlows.Sections.FlowPath.FlowDirection, (int)FleFlows.Enums.FlowDirection.Tx)
 			.WithFieldValue(FleFlows.Sections.FlowPath.Element, "123/1")
 			.WithFieldValue(FleFlows.Sections.FlowPath.Interface, "eth0"))
-		.AddSection(new DomSectionBuilder(FleFlows.Sections.FlowTransportIP.Id)
+		.AddSection(FleFlows.Sections.FlowTransportIP.Id, b => b
 			.WithFieldValue(FleFlows.Sections.FlowTransportIP.SourceIP, "10.20.30.5")
 			.WithFieldValue(FleFlows.Sections.FlowTransportIP.DestinationIP, "239.17.0.5")
 			.WithFieldValue(FleFlows.Sections.FlowTransportIP.DestinationPort, 5000))
