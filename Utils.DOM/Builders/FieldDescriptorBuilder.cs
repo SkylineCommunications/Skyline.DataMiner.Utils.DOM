@@ -10,7 +10,10 @@
 	/// <typeparam name="T">The type of the builder class.</typeparam>
 	public class FieldDescriptorBuilder<T> where T : FieldDescriptorBuilder<T>
     {
-        private readonly FieldDescriptor _fieldDescriptor;
+		/// <summary>
+		/// The <see cref="FieldDescriptor"/> instance being built by the builder.
+		/// </summary>
+		protected readonly FieldDescriptor _fieldDescriptor;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FieldDescriptorBuilder{T}"/> class.

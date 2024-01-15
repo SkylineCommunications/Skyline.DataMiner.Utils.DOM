@@ -11,13 +11,13 @@
 	/// </summary>
 	public class DomHelperMock : DomHelper
 	{
-		private readonly MockMessageHandler _messageHandler;
+		private readonly DomSLNetMessageHandler _messageHandler;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="DomHelperMock"/> class with a specified <see cref="MockMessageHandler"/>.
+		/// Initializes a new instance of the <see cref="DomHelperMock"/> class with a specified <see cref="DomSLNetMessageHandler"/>.
 		/// </summary>
 		/// <param name="messageHandler">The mock message handler for processing DOM messages.</param>
-		private DomHelperMock(MockMessageHandler messageHandler) : base(messageHandler.HandleMessages, "module")
+		private DomHelperMock(DomSLNetMessageHandler messageHandler) : base(messageHandler.HandleMessages, "module")
 		{
 			_messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
 		}
@@ -28,7 +28,7 @@
 		/// <returns>A new instance of <see cref="DomHelperMock"/>.</returns>
 		public static DomHelperMock Create()
 		{
-			var messageHandler = new MockMessageHandler();
+			var messageHandler = new DomSLNetMessageHandler();
 			return new DomHelperMock(messageHandler);
 		}
 

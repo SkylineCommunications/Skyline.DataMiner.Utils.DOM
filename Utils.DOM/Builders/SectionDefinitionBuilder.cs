@@ -10,7 +10,10 @@
 	/// <typeparam name="T">The type of the builder class.</typeparam>
 	public class SectionDefinitionBuilder<T> where T : SectionDefinitionBuilder<T>
 	{
-		private readonly CustomSectionDefinition _definition;
+		/// <summary>
+		/// The <see cref="CustomSectionDefinition"/> instance being built by the builder.
+		/// </summary>
+		protected readonly CustomSectionDefinition _definition;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SectionDefinitionBuilder{T}"/> class.

@@ -12,7 +12,10 @@
 	/// <typeparam name="T">The type of the derived builder class.</typeparam>
 	public class DomDefinitionBuilder<T> where T : DomDefinitionBuilder<T>
     {
-        private readonly DomDefinition _definition;
+		/// <summary>
+		/// The <see cref="DomDefinition"/> instance being built by the builder.
+		/// </summary>
+		protected readonly DomDefinition _definition;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomDefinitionBuilder{T}"/> class.

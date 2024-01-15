@@ -11,7 +11,10 @@
 	/// <typeparam name="T">The type of the derived builder class.</typeparam>
 	public class DomSectionBuilder<T> where T : DomSectionBuilder<T>
     {
-        private readonly Section _section;
+		/// <summary>
+		/// The <see cref="Section"/> instance being built by the builder.
+		/// </summary>
+		protected readonly Section _section;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomSectionBuilder{T}"/> class.
