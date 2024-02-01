@@ -4,7 +4,7 @@
 
 ### About Skyline.DataMiner.Utils.DOM
 
-Provides a set of useful classes and extension methods that can be used to interact with [DataMiner Object Model (DOM)](https://docs.dataminer.services/user-guide/Advanced_Modules/DOM/DOM.html).
+Provides a set of useful classes and extension methods that can make it easier to interact with the core [DataMiner Object Model (DOM)](https://docs.dataminer.services/user-guide/Advanced_Modules/DOM/DOM.html) API.
 
 ### About DataMiner
 
