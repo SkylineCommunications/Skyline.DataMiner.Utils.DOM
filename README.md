@@ -42,7 +42,7 @@ For subsequent requests with the same ID, the cached object is retrieved directl
 
  ```cs
 var guid = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-1234567890ab");
-var domCache = new DomCache(...);
+var domCache = new DomCache(engine.SendSLNetMessages, "module");
 
 // will be retrieved from DMA
 var instance1 = domCache.GetInstanceById(guid);

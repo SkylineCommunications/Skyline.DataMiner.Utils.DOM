@@ -141,7 +141,32 @@
 
             return (T)this;
         }
-    }
+
+		/// <summary>
+		/// Sets the field value for a specific field descriptor.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the field value.</typeparam>
+		/// <param name="fieldName">The name of the field.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="cache">An instance of <see cref="DomCache"/>.</param>
+		/// <returns>The builder instance.</returns>
+		public T WithFieldValue<TValue>(string fieldName, TValue value, DomCache cache)
+		{
+			if (String.IsNullOrWhiteSpace(fieldName))
+			{
+				throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or whitespace.", nameof(fieldName));
+			}
+
+			if (cache == null)
+			{
+				throw new ArgumentNullException(nameof(cache));
+			}
+
+			_section.SetFieldValue(fieldName, value, cache);
+
+			return (T)this;
+		}
+	}
 
 	/// <summary>
 	/// Represents a builder for creating instances of the <see cref="Section"/> class.

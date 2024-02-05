@@ -4,7 +4,8 @@ namespace Utils.DOM.Tests
     using FluentAssertions;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Skyline.DataMiner.Net.Sections;
-    using Skyline.DataMiner.Utils.DOM.Builders;
+	using Skyline.DataMiner.Utils.DOM;
+	using Skyline.DataMiner.Utils.DOM.Builders;
     using Skyline.DataMiner.Utils.DOM.Extensions;
 
     [TestClass]
@@ -58,5 +59,17 @@ namespace Utils.DOM.Tests
 
             section.GetFieldValue<int>(fieldDesc).Should().Be(123);
         }
-    }
+
+		[TestMethod]
+		public void DomSectionBuilder_WithFieldValue3()
+		{
+			var cache = new DomCache(TestData.DomHelper);
+
+			var section = new DomSectionBuilder(TestData.SectionDefinition1)
+				.WithFieldValue("Field 1", "my value", cache)
+				.Build();
+
+			section.GetFieldValue<string>("Field 1", cache).Should().Be("my value");
+		}
+	}
 }

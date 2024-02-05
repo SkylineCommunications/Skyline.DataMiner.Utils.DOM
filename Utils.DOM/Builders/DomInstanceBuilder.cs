@@ -246,7 +246,38 @@
 
             return WithFieldValue(sectionDefinition.GetID(), fieldDescriptor.ID, value);
         }
-    }
+
+		/// <summary>
+		/// Sets the field value for a specific section definition and field descriptor in the <see cref="DomInstance"/>.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the field value.</typeparam>
+		/// <param name="sectionDefinitionName">The name of the section definition.</param>
+		/// <param name="fieldName">The name of the field.</param>
+		/// <param name="value">The value to set.</param>
+		/// <param name="cache">An instance of <see cref="DomCache"/>.</param>
+		/// <returns>The builder instance.</returns>
+		public T WithFieldValue<TValue>(string sectionDefinitionName, string fieldName, TValue value, DomCache cache)
+		{
+			if (String.IsNullOrWhiteSpace(sectionDefinitionName))
+			{
+				throw new ArgumentException($"'{nameof(sectionDefinitionName)}' cannot be null or whitespace.", nameof(sectionDefinitionName));
+			}
+
+			if (String.IsNullOrWhiteSpace(fieldName))
+			{
+				throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or whitespace.", nameof(fieldName));
+			}
+
+			if (cache == null)
+			{
+				throw new ArgumentNullException(nameof(cache));
+			}
+
+			_instance.SetFieldValue(sectionDefinitionName, fieldName, value, cache);
+
+			return (T)this;
+		}
+	}
 
 	/// <summary>
 	/// Represents a builder for creating instances of <see cref="DomInstance"/>.
@@ -283,5 +314,5 @@
 		public DomInstanceBuilder(DomInstance instance) : base(instance)
         {
         }
-    }
+	}
 }
