@@ -39,6 +39,13 @@
 		/// </summary>
 		/// <param name="messageHandler">The message handler for processing messages.</param>
 		/// <param name="moduleId">The module ID associated with the DOM cache.</param>
+		/// <remarks>
+		/// Examples:
+		/// <list type="bullet">
+		///		<item>automation script: <code>var domCache = new DomCache(engine.SendSLNetMessages, "module");</code></item>
+		///		<item>connector: <code>var domCache = new DomCache(protocol.SLNet.SendMessages, "module");</code></item>
+		/// </list>
+		/// </remarks>
 		public DomCache(Func<DMSMessage[], DMSMessage[]> messageHandler, string moduleId)
 		{
 			if (messageHandler == null)
