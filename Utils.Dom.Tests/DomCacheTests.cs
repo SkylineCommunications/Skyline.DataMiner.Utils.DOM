@@ -53,7 +53,7 @@
 
 			var instances = cache.GetInstances(filter);
 
-			instances.Should().Equal(new[] { TestData.Instance1 });
+			instances.Should().Equal(TestData.Instance1);
 		}
 
 		[TestMethod]

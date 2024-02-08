@@ -21,7 +21,6 @@
 		<Description>Provides a set of classes that can be used to interact with DataMiner Object Model (DOM).</Description>
 		<RepositoryUrl>https://github.com/SkylineCommunications/Skyline.DataMiner.Utils.DOM</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Skyline.DataMiner.Dev.Common" Version="10.3.3" />
