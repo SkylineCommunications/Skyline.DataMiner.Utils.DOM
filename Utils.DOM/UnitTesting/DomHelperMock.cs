@@ -91,5 +91,19 @@
 
 			_messageHandler.SetInstances(instances);
 		}
+
+		/// <summary>
+		/// Sets the behavior definitions in the mock.
+		/// </summary>
+		/// <param name="definitions">The collection of DOM behavior definitions to set.</param>
+		public void SetBehaviorDefinitions(IEnumerable<DomBehaviorDefinition> definitions)
+		{
+			if (definitions == null)
+			{
+				throw new ArgumentNullException(nameof(definitions));
+			}
+
+			_messageHandler.SetBehaviorDefinitions(definitions);
+		}
 	}
 }

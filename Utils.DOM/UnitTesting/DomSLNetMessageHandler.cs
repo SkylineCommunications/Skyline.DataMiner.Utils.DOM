@@ -18,6 +18,7 @@
 		private readonly ConcurrentDictionary<Guid, DomDefinition> _definitions = new ConcurrentDictionary<Guid, DomDefinition>();
 		private readonly ConcurrentDictionary<Guid, SectionDefinition> _sectionDefinitions = new ConcurrentDictionary<Guid, SectionDefinition>();
 		private readonly ConcurrentDictionary<Guid, DomInstance> _instances = new ConcurrentDictionary<Guid, DomInstance>();
+		private readonly ConcurrentDictionary<Guid, DomBehaviorDefinition> _behaviorDefinitions = new ConcurrentDictionary<Guid, DomBehaviorDefinition>();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomSLNetMessageHandler"/> class.
@@ -83,6 +84,26 @@
 			foreach (var instance in instances)
 			{
 				_instances.TryAdd(instance.ID.SafeId(), instance);
+			}
+		}
+
+		/// <summary>
+		/// Sets the DomBehaviorDefinitions for the handler.
+		/// </summary>
+		/// <param name="definitions">The collection of DomBehaviorDefinitions to set.</param>
+		/// <exception cref="ArgumentNullException">Thrown when the input collection of DomBehaviorDefinitions is null.</exception>
+		public void SetBehaviorDefinitions(IEnumerable<DomBehaviorDefinition> definitions)
+		{
+			if (definitions == null)
+			{
+				throw new ArgumentNullException(nameof(definitions));
+			}
+
+			_behaviorDefinitions.Clear();
+
+			foreach (var definition in definitions)
+			{
+				_behaviorDefinitions.TryAdd(definition.ID.SafeId(), definition);
 			}
 		}
 
@@ -196,6 +217,30 @@
 				case ManagerStoreDeleteRequest<DomInstance> request:
 					_instances.TryRemove(request.Object.ID.SafeId(), out _);
 					response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
+					return true;
+
+				#endregion
+
+				#region BehaviorDefinitions
+
+				case ManagerStoreReadRequest<DomBehaviorDefinition> request:
+					var behaviorDefinitions = request.Query.ExecuteInMemory(_behaviorDefinitions.Values).ToList();
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(behaviorDefinitions);
+					return true;
+
+				case ManagerStoreCreateRequest<DomBehaviorDefinition> request:
+					_behaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+					return true;
+
+				case ManagerStoreUpdateRequest<DomBehaviorDefinition> request:
+					_behaviorDefinitions[request.Object.ID.SafeId()] = request.Object;
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
+					return true;
+
+				case ManagerStoreDeleteRequest<DomBehaviorDefinition> request:
+					_behaviorDefinitions.TryRemove(request.Object.ID.SafeId(), out _);
+					response = new ManagerStoreCrudResponse<DomBehaviorDefinition>(request.Object);
 					return true;
 
 				#endregion

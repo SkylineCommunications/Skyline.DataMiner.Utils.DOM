@@ -95,6 +95,21 @@
         }
 
 		/// <summary>
+		/// Sets the DOM behavior definition of the <see cref="DomDefinition"/>.
+		/// </summary>
+		/// <param name="definition">The DOM behavior definition to set.</param>
+		/// <returns>The builder instance.</returns>
+		public T WithDomBehaviorDefinition(DomBehaviorDefinition definition)
+		{
+			if (definition == null)
+			{
+				throw new ArgumentNullException(nameof(definition));
+			}
+
+			return WithDomBehaviorDefinition(definition.ID);
+		}
+
+		/// <summary>
 		/// Adds a section definition link to the <see cref="DomDefinition"/>.
 		/// </summary>
 		/// <param name="sectionDefinitionLink">The section definition link to add.</param>
