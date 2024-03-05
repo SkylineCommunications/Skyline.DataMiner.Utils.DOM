@@ -285,7 +285,7 @@
 
 			if (instance.StatusId != transition.FromStatusId)
 			{
-				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}'");
+				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}', but '{instance.StatusId}'");
 			}
 
 			instance.StatusId = transition.ToStatusId;
