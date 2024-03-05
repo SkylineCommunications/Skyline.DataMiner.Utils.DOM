@@ -7,6 +7,7 @@
 
 	using Skyline.DataMiner.Net;
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel.CustomMessages;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Sections;
 
@@ -245,10 +246,51 @@
 
 				#endregion
 
+				#region Status Transition
+
+				case DomInstanceStatusTransitionRequestMessage request:
+					response = HandleDomInstanceStatusTransitionRequestMessage(request);
+					return true;
+
+				#endregion
+
 				default:
 					response = default;
 					return false;
 			}
+		}
+
+		private DMSMessage HandleDomInstanceStatusTransitionRequestMessage(DomInstanceStatusTransitionRequestMessage request)
+		{
+			if (!_instances.TryGetValue(request.DomInstanceId.Id, out var instance))
+			{
+				throw new InvalidOperationException($"Couldn't find instance with ID '{request.DomInstanceId.Id}'");
+			}
+
+			if (!_definitions.TryGetValue(instance.DomDefinitionId.Id, out var definition))
+			{
+				throw new InvalidOperationException($"Couldn't find definition with ID '{instance.DomDefinitionId.Id}'");
+			}
+
+			if (!_behaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId.Id, out var behavior))
+			{
+				throw new InvalidOperationException($"Couldn't find behavior with ID '{definition.DomBehaviorDefinitionId.Id}'");
+			}
+
+			var transition = behavior.StatusTransitions.FirstOrDefault(x => String.Equals(x.Id, request.TransitionId));
+			if (transition == null)
+			{
+				throw new InvalidOperationException($"Couldn't find transition with ID '{request.TransitionId}'");
+			}
+
+			if (instance.StatusId != transition.FromStatusId)
+			{
+				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}'");
+			}
+
+			instance.StatusId = transition.ToStatusId;
+
+			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
 		}
 	}
 }

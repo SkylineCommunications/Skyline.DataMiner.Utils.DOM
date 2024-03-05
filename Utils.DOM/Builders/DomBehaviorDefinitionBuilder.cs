@@ -113,6 +113,23 @@
 
 			return (T)this;
 		}
+
+		/// <summary>
+		/// Sets the status transitions.
+		/// </summary>
+		/// <param name="transitions">The transitions to set.</param>
+		/// <returns>The builder instance.</returns>
+		public T WithStatusTransitions(IEnumerable<DomStatusTransition> transitions)
+		{
+			if (transitions == null)
+			{
+				throw new ArgumentNullException(nameof(transitions));
+			}
+
+			_definition.StatusTransitions = transitions.ToList();
+
+			return (T)this;
+		}
 	}
 
 	/// <summary>

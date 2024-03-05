@@ -64,5 +64,25 @@
 
 			definition.Statuses.Should().BeEquivalentTo(statuses);
 		}
+
+		[TestMethod]
+		public void DomBehaviorDefinitionBuilder_WithStatusTransitions()
+		{
+			var statusDraft = new DomStatus("draft", "Draft");
+			var statusConfirmed = new DomStatus("confirmed", "Confirmed");
+			var statusRunning = new DomStatus("running", "Running");
+
+			var transitions = new[]
+			{
+				new DomStatusTransition("draft_to_confirmed", statusDraft.Id, statusConfirmed.Id),
+				new DomStatusTransition("confirmed_to_running", statusConfirmed.Id, statusRunning.Id),
+			};
+
+			var definition = new DomBehaviorDefinitionBuilder()
+				.WithStatusTransitions(transitions)
+				.Build();
+
+			definition.StatusTransitions.Should().BeEquivalentTo(transitions);
+		}
 	}
 }
