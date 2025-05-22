@@ -29,6 +29,11 @@
 		}
 
 		/// <summary>
+		/// Occurs when DOM instances have changed.
+		/// </summary>
+		public event EventHandler<DomInstancesChangedEventMessage> OnInstancesChanged;
+
+		/// <summary>
 		/// Sets the DomDefinitions for the handler.
 		/// </summary>
 		/// <param name="moduleId">The ID of the DOM module.</param>
@@ -294,6 +299,10 @@
 						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
 
+						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
+						@event.Created.Add(request.Object);
+						OnInstancesChanged?.Invoke(this, @event);
+
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
@@ -309,6 +318,10 @@
 						module.TrySetNameOnDomInstance(request.Object);
 						module.Instances[request.Object.ID.SafeId()] = request.Object;
 
+						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
+						@event.Updated.Add(request.Object);
+						OnInstancesChanged?.Invoke(this, @event);
+
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
@@ -316,7 +329,16 @@
 				case ManagerStoreDeleteRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						module.Instances.TryRemove(request.Object.ID.SafeId(), out _);
+
+						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
+
+						if (module.Instances.TryRemove(request.Object.ID.SafeId(), out var removed))
+						{
+							@event.Deleted.Add(request.Object);
+						}
+
+						OnInstancesChanged?.Invoke(this, @event);
+
 						response = new ManagerStoreCrudResponse<DomInstance>(request.Object);
 						return true;
 					}
@@ -334,12 +356,19 @@
 						var module = GetDomModule(request.ModuleId);
 						var utcNow = DateTime.UtcNow;
 
+						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
+
 						foreach (var obj in request.Objects)
 						{
 							if (!module.Instances.ContainsKey(obj.ID.SafeId()))
 							{
+								@event.Created.Add(obj);
 								((ITrackCreatedAt)obj).CreatedAt = utcNow;
 								((ITrackCreatedBy)obj).CreatedBy = "DomSLNetMessageHandler";
+							}
+							else
+							{
+								@event.Updated.Add(obj);
 							}
 
 							((ITrackLastModified)obj).LastModified = utcNow;
@@ -348,6 +377,8 @@
 							module.TrySetNameOnDomInstance(obj);
 							module.Instances[obj.ID.SafeId()] = obj;
 						}
+
+						OnInstancesChanged?.Invoke(this, @event);
 
 						var traceData = request.Objects.ToDictionary(x => x.ID, x => new TraceData());
 						var unsuccessfulIds = new List<DomInstanceId>();
@@ -363,18 +394,22 @@
 
 						var successfulIds = new List<DomInstance>();
 						var unsuccessfulIds = new List<DomInstance>();
+						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
 						foreach (var obj in request.Objects)
 						{
-							if (module.Instances.TryRemove(obj.ID.SafeId(), out _))
+							if (module.Instances.TryRemove(obj.ID.SafeId(), out var removed))
 							{
-								successfulIds.Add(obj);
+								successfulIds.Add(removed);
+								@event.Deleted.Add(removed);
 							}
 							else
 							{
 								unsuccessfulIds.Add(obj);
 							}
 						}
+
+						OnInstancesChanged?.Invoke(this, @event);
 
 						var traceData = request.Objects.ToDictionary(x => x, x => new TraceData());
 						var result = new BulkDeleteResult<DomInstance>(successfulIds, unsuccessfulIds, traceData);
