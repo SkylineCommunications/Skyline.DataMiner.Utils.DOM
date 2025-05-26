@@ -108,6 +108,7 @@ var domCache = DomCacheMock.Create(instances);
 ```
 
 This library can also be used to simulate subscribing to DOM events in unit tests.
+
 Example:
 
 ```cs
@@ -116,8 +117,7 @@ var connection = new DomConnectionMock();
 
 var receivedEvents = new List<DomInstancesChangedEventMessage>();
 connection.OnNewMessage += (s, e) => {
-    if (e.FromSet(subscriptionSet) &&
-		e.Message is DomInstancesChangedEventMessage evt) {
+    if (e.FromSet(subscriptionSet) && e.Message is DomInstancesChangedEventMessage evt) {
         receivedEvents.Add(evt);
     }
 };
