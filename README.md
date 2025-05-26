@@ -107,3 +107,35 @@ var instances = new List<DomInstance>();
 var domCache = DomCacheMock.Create(instances);
 ```
 
+This library can also be used to simulate subscribing to DOM events in unit tests.
+Example:
+
+```cs
+var subscriptionSet = "test set";
+var connection = new DomConnectionMock();
+
+var receivedEvents = new List<DomInstancesChangedEventMessage>();
+connection.OnNewMessage += (s, e) => {
+    if (e.FromSet(subscriptionSet) &&
+		e.Message is DomInstancesChangedEventMessage evt) {
+        receivedEvents.Add(evt);
+    }
+};
+
+// Add a subscription
+var filter = new ANDFilterElement<DomInstance>(
+    DomInstanceExposers.DomDefinitionId.Equal(someId),
+    DomInstanceExposers.Id.Equal(someInstanceId)
+);
+connection.AddSubscription(subscriptionSet, new SubscriptionFilter[] {
+    new ModuleEventSubscriptionFilter<DomInstancesChangedEventMessage>("module"),
+    new SubscriptionFilter<DomInstancesChangedEventMessage, DomInstance>(filter),
+});
+
+// Simulate a DOM change
+var domHelper = new DomHelper(connection.HandleMessages, "module");
+domHelper.DomInstances.Create(someInstance);
+
+// Assert received events in your test
+Assert.AreEqual(1, receivedEvents.Count);
+```
