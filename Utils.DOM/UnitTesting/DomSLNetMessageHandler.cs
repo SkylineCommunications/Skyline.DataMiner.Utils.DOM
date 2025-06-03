@@ -299,7 +299,11 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
-						module.Instances[instance.ID] = instance;
+
+						if (!module.Instances.TryAdd(instance.ID, instance))
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' already exists in module '{request.ModuleId}'.");
+						}
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 						@event.Created.Add(instance);
