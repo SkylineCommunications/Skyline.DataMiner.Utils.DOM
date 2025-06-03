@@ -319,6 +319,12 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
+
+						if (!module.Instances.ContainsKey(instance.ID))
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' not found in module '{request.ModuleId}'.");
+						}
+
 						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
@@ -339,6 +345,10 @@
 						if (module.Instances.TryRemove(instance.ID, out var removed))
 						{
 							@event.Deleted.Add(instance);
+						}
+						else
+						{
+							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' not found in module '{request.ModuleId}'.");
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
