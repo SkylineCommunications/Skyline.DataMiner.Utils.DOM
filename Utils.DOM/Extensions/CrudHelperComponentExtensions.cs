@@ -96,7 +96,7 @@
 		/// <param name="instances">The instances to create or update.</param>
 		/// <returns>A result indicating the success and failure details of the operation.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="instances"/> is null.</exception>
-		public static BulkCreateOrUpdateResult<T, K> CreateOrUpdateInBatches<T, K>(this IBulkCrudHelperComponent<T, K> helper, IEnumerable<T> instances)
+		public static BulkCreateOrUpdateResult<T, K> CreateOrUpdateInBatches<T, K>(this IBulkCrudTryHelperComponent<T, K> helper, IEnumerable<T> instances)
 			where T : IManagerIdentifiableObject<K>, DataType
 			where K : IEquatable<K>
 		{
@@ -116,7 +116,7 @@
 
 			foreach (var batch in instances.Batch(100))
 			{
-				var batchResult = helper.CreateOrUpdate(batch.ToList());
+				helper.TryCreateOrUpdate(batch.ToList(), out var batchResult);
 
 				successfulItems.AddRange(batchResult.SuccessfulItems);
 				unsuccessfulIds.AddRange(batchResult.UnsuccessfulIds);
@@ -127,7 +127,56 @@
 				}
 			}
 
-			return new BulkCreateOrUpdateResult<T, K>(successfulItems, unsuccessfulIds, traceDataPerItem);
+			var result = new BulkCreateOrUpdateResult<T, K>(successfulItems, unsuccessfulIds, traceDataPerItem);
+			result.ThrowOnFailure();
+
+			return result;
+		}
+
+		/// <summary>
+		/// Creates or updates a collection of instances in batches.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The bulk CRUD helper component used to perform create or update operations.</param>
+		/// <param name="instances">The instances to create or update.</param>
+		/// <param name="result">The result indicating the success and failure details of the operation.</param>
+		/// <returns>True if all items were created or updated successfully; otherwise, false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="instances"/> is null.</exception>
+		public static bool TryCreateOrUpdateInBatches<T, K>(this IBulkCrudTryHelperComponent<T, K> helper, IEnumerable<T> instances, out BulkCreateOrUpdateResult<T, K> result)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (instances == null)
+			{
+				throw new ArgumentNullException(nameof(instances));
+			}
+
+			var successfulItems = new List<T>();
+			var unsuccessfulIds = new List<K>();
+			var traceDataPerItem = new Dictionary<K, TraceData>();
+
+			foreach (var batch in instances.Batch(100))
+			{
+				helper.TryCreateOrUpdate(batch.ToList(), out var batchResult);
+
+				successfulItems.AddRange(batchResult.SuccessfulItems);
+				unsuccessfulIds.AddRange(batchResult.UnsuccessfulIds);
+
+				foreach (var item in batchResult.TraceDataPerItem)
+				{
+					traceDataPerItem[item.Key] = item.Value;
+				}
+			}
+
+			result = new BulkCreateOrUpdateResult<T, K>(successfulItems, unsuccessfulIds, traceDataPerItem);
+
+			return !result.HasFailures();
 		}
 
 		/// <summary>
@@ -139,7 +188,7 @@
 		/// <param name="instances">The instances to delete.</param>
 		/// <returns>A result indicating the success and failure details of the operation.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="instances"/> is null.</exception>
-		public static BulkDeleteResult<K> DeleteInBatches<T, K>(this IBulkCrudHelperComponent<T, K> helper, IEnumerable<T> instances)
+		public static BulkDeleteResult<K> DeleteInBatches<T, K>(this IBulkCrudTryHelperComponent<T, K> helper, IEnumerable<T> instances)
 			where T : IManagerIdentifiableObject<K>, DataType
 			where K : IEquatable<K>
 		{
@@ -159,7 +208,7 @@
 
 			foreach (var batch in instances.Batch(100))
 			{
-				var batchResult = helper.Delete(batch.ToList());
+				helper.TryDelete(batch.ToList(), out var batchResult);
 
 				successfulIds.AddRange(batchResult.SuccessfulIds);
 				unsuccessfulIds.AddRange(batchResult.UnsuccessfulIds);
@@ -170,7 +219,56 @@
 				}
 			}
 
-			return new BulkDeleteResult<K>(successfulIds, unsuccessfulIds, traceDataPerItem);
+			var result = new BulkDeleteResult<K>(successfulIds, unsuccessfulIds, traceDataPerItem);
+			result.ThrowOnFailure();
+
+			return result;
+		}
+
+		/// <summary>
+		/// Deletes a collection of instances in batches.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The bulk CRUD helper component used to perform delete operations.</param>
+		/// <param name="instances">The instances to delete.</param>
+		/// <param name="result">The result indicating the success and failure details of the operation.</param>
+		/// <returns>True if all items were created or updated successfully; otherwise, false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="instances"/> is null.</exception>
+		public static bool TryDeleteInBatches<T, K>(this IBulkCrudTryHelperComponent<T, K> helper, IEnumerable<T> instances, BulkDeleteResult<K> result)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (instances == null)
+			{
+				throw new ArgumentNullException(nameof(instances));
+			}
+
+			var successfulIds = new List<K>();
+			var unsuccessfulIds = new List<K>();
+			var traceDataPerItem = new Dictionary<K, TraceData>();
+
+			foreach (var batch in instances.Batch(100))
+			{
+				helper.TryDelete(batch.ToList(), out var batchResult);
+
+				successfulIds.AddRange(batchResult.SuccessfulIds);
+				unsuccessfulIds.AddRange(batchResult.UnsuccessfulIds);
+
+				foreach (var item in batchResult.TraceDataPerItem)
+				{
+					traceDataPerItem[item.Key] = item.Value;
+				}
+			}
+
+			result = new BulkDeleteResult<K>(successfulIds, unsuccessfulIds, traceDataPerItem);
+
+			return !result.HasFailures();
 		}
 
 		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType
