@@ -233,7 +233,7 @@
 		/// <param name="helper">The bulk CRUD helper component used to perform delete operations.</param>
 		/// <param name="instances">The instances to delete.</param>
 		/// <param name="result">The result indicating the success and failure details of the operation.</param>
-		/// <returns>True if all items were created or updated successfully; otherwise, false.</returns>
+		/// <returns>True if all items were deleted successfully; otherwise, false.</returns>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="instances"/> is null.</exception>
 		public static bool TryDeleteInBatches<T, K>(this IBulkCrudTryHelperComponent<T, K> helper, IEnumerable<T> instances, out BulkDeleteResult<K> result)
 			where T : IManagerIdentifiableObject<K>, DataType
