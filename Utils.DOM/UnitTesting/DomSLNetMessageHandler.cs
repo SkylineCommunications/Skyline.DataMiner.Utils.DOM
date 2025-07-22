@@ -346,14 +346,8 @@
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
-						if (module.Instances.TryRemove(instance.ID, out var removed))
-						{
-							@event.Deleted.Add(instance);
-						}
-						else
-						{
-							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' not found in module '{request.ModuleId}'.");
-						}
+						module.Instances.TryRemove(instance.ID, out var removed);
+						@event.Deleted.Add(instance);
 
 						OnInstancesChanged?.Invoke(this, @event);
 
@@ -420,16 +414,10 @@
 						foreach (var instance in instances)
 						{
 							var instanceId = instance.ID;
-
-							if (module.Instances.TryRemove(instanceId, out var removed))
-							{
-								successfulIds.Add(instanceId);
-								@event.Deleted.Add(removed);
-							}
-							else
-							{
-								unsuccessfulIds.Add(instanceId);
-							}
+			
+							module.Instances.TryRemove(instanceId, out var removed);
+							successfulIds.Add(instanceId);
+							@event.Deleted.Add(removed);
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
