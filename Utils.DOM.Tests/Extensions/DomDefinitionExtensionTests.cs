@@ -1,4 +1,4 @@
-﻿namespace Utils.DOM.Tests.Extensions
+﻿namespace Skyline.DataMiner.Utils.DOM.Tests.Extensions
 {
 	using FluentAssertions;
 

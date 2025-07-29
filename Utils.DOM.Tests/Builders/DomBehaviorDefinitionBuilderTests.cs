@@ -1,4 +1,4 @@
-﻿namespace Utils.DOM.Tests
+﻿namespace Skyline.DataMiner.Utils.DOM.Tests.Builders
 {
 	using System;
 

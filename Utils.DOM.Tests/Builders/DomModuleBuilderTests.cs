@@ -1,29 +1,25 @@
-// Ignore Spelling: Utils
-
-namespace Utils.DOM.Tests
+namespace Skyline.DataMiner.Utils.DOM.Tests.Builders
 {
-    using System;
-	using System.Collections.Generic;
+	using System;
 
 	using FluentAssertions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-	using Skyline.DataMiner.Net.GenericEnums;
-	using Skyline.DataMiner.Net.Sections;
-    using Skyline.DataMiner.Utils.DOM.Builders;
+	using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-    [TestClass]
-    public class DomModuleBuilderTests
+	using Skyline.DataMiner.Utils.DOM.Builders;
+
+	[TestClass]
+	public class DomModuleBuilderTests
 	{
-        [TestMethod]
-        public void DomModuleBuilder_WithModuleId()
-        {
+		[TestMethod]
+		public void DomModuleBuilder_WithModuleId()
+		{
 			var id1 = "my_module";
 			var id2 = "MyIncorrectModule";
 
-            var module1 = new DomModuleBuilder()
-                .WithModuleId(id1)
-                .Build();
+			var module1 = new DomModuleBuilder()
+				.WithModuleId(id1)
+				.Build();
 
 			var module2 = () => new DomModuleBuilder()
 				.WithModuleId(id2)
@@ -33,15 +29,15 @@ namespace Utils.DOM.Tests
 			module2.Should().Throw<ArgumentException>();
 		}
 
-        [TestMethod]
-        public void DomModuleBuilder_WithInformationEvents()
-        {
-            var module = new DomModuleBuilder()
-                .WithInformationEvents(true)
-                .Build();
+		[TestMethod]
+		public void DomModuleBuilder_WithInformationEvents()
+		{
+			var module = new DomModuleBuilder()
+				.WithInformationEvents(true)
+				.Build();
 
-            module.DomManagerSettings.InformationEventSettings.Enable.Should().Be(true);
-        }
+			module.DomManagerSettings.InformationEventSettings.Enable.Should().Be(true);
+		}
 
 		[TestMethod]
 		public void DomModuleBuilder_WithoutHistory()

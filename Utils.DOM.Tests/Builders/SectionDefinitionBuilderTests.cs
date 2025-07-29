@@ -1,72 +1,75 @@
-namespace Utils.DOM.Tests
+namespace Skyline.DataMiner.Utils.DOM.Tests.Builders
 {
-    using System;
-    using FluentAssertions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Skyline.DataMiner.Net.Sections;
-    using Skyline.DataMiner.Utils.DOM.Builders;
+	using System;
 
-    [TestClass]
-    public class SectionDefinitionBuilderTests
-    {
-        [TestMethod]
-        public void SectionDefinitionBuilder_WithID()
-        {
-            var id = new SectionDefinitionID(Guid.NewGuid());
+	using FluentAssertions;
 
-            var definition = new SectionDefinitionBuilder()
-                .WithID(id)
-                .Build();
+	using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-            definition.GetID().Should().Be(id);
-        }
+	using Skyline.DataMiner.Net.Sections;
+	using Skyline.DataMiner.Utils.DOM.Builders;
 
-        [TestMethod]
-        public void SectionDefinitionBuilder_WithName()
-        {
-            var name = "My name";
+	[TestClass]
+	public class SectionDefinitionBuilderTests
+	{
+		[TestMethod]
+		public void SectionDefinitionBuilder_WithID()
+		{
+			var id = new SectionDefinitionID(Guid.NewGuid());
 
-            var definition = new SectionDefinitionBuilder()
-                .WithName(name)
-                .Build();
+			var definition = new SectionDefinitionBuilder()
+				.WithID(id)
+				.Build();
 
-            definition.GetName().Should().Be(name);
-        }
+			definition.GetID().Should().Be(id);
+		}
 
-        [TestMethod]
-        public void SectionDefinitionBuilder_WithReservationLinkInfo()
-        {
-            var reservationLinkInfo = new ReservationLinkInfo();
+		[TestMethod]
+		public void SectionDefinitionBuilder_WithName()
+		{
+			var name = "My name";
 
-            var definition = new SectionDefinitionBuilder()
-                .WithReservationLinkInfo(reservationLinkInfo)
-                .Build();
+			var definition = new SectionDefinitionBuilder()
+				.WithName(name)
+				.Build();
 
-            definition.GetReservationLinkInfo().Should().Be(reservationLinkInfo);
-        }
+			definition.GetName().Should().Be(name);
+		}
 
-        [TestMethod]
-        public void SectionDefinitionBuilder_AddFieldDescriptor()
-        {
-            var fieldDescriptorId1 = new FieldDescriptorID(Guid.NewGuid());
-            var fieldDescriptorId2 = new FieldDescriptorID(Guid.NewGuid());
-            var fieldDescriptorId3 = new FieldDescriptorID(Guid.NewGuid());
+		[TestMethod]
+		public void SectionDefinitionBuilder_WithReservationLinkInfo()
+		{
+			var reservationLinkInfo = new ReservationLinkInfo();
 
-            var definition = new SectionDefinitionBuilder()
-                .AddFieldDescriptor(new FieldDescriptor { ID = fieldDescriptorId1 })
-                .AddFieldDescriptor(new FieldDescriptorBuilder()
-                    .WithID(fieldDescriptorId2))
-                .AddFieldDescriptor(builder =>
-                    builder.WithID(fieldDescriptorId3))
-                .Build();
+			var definition = new SectionDefinitionBuilder()
+				.WithReservationLinkInfo(reservationLinkInfo)
+				.Build();
 
-            definition.GetAllFieldDescriptors().Should()
-                .BeEquivalentTo(new[]
-                {
-                    new FieldDescriptor{ ID = fieldDescriptorId1 },
-                    new FieldDescriptor{ ID = fieldDescriptorId2 },
-                    new FieldDescriptor{ ID = fieldDescriptorId3 },
-                });
-        }
-    }
+			definition.GetReservationLinkInfo().Should().Be(reservationLinkInfo);
+		}
+
+		[TestMethod]
+		public void SectionDefinitionBuilder_AddFieldDescriptor()
+		{
+			var fieldDescriptorId1 = new FieldDescriptorID(Guid.NewGuid());
+			var fieldDescriptorId2 = new FieldDescriptorID(Guid.NewGuid());
+			var fieldDescriptorId3 = new FieldDescriptorID(Guid.NewGuid());
+
+			var definition = new SectionDefinitionBuilder()
+				.AddFieldDescriptor(new FieldDescriptor { ID = fieldDescriptorId1 })
+				.AddFieldDescriptor(new FieldDescriptorBuilder()
+					.WithID(fieldDescriptorId2))
+				.AddFieldDescriptor(builder =>
+					builder.WithID(fieldDescriptorId3))
+				.Build();
+
+			definition.GetAllFieldDescriptors().Should()
+				.BeEquivalentTo(new[]
+				{
+					new FieldDescriptor{ ID = fieldDescriptorId1 },
+					new FieldDescriptor{ ID = fieldDescriptorId2 },
+					new FieldDescriptor{ ID = fieldDescriptorId3 },
+				});
+		}
+	}
 }
