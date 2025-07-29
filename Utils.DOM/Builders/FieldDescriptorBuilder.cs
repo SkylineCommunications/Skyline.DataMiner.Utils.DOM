@@ -5,109 +5,10 @@ namespace Skyline.DataMiner.Utils.DOM.Builders
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
-	using System.Runtime.Remoting.Messaging;
-	using System.Xml.Linq;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
 	using Skyline.DataMiner.Net.GenericEnums;
-	using Skyline.DataMiner.Net.Helper;
 	using Skyline.DataMiner.Net.Sections;
-
-	/// <summary>
-	/// Specifies the supported types for a field descriptor.
-	/// </summary>
-	public enum FieldType
-	{
-		/// <summary>
-		/// A string field type.
-		/// </summary>
-		String,
-
-		/// <summary>
-		/// A double-precision floating-point field type.
-		/// </summary>
-		Double,
-
-		/// <summary>
-		/// A 64-bit integer field type.
-		/// </summary>
-		Int64,
-
-		/// <summary>
-		/// A date and time field type.
-		/// </summary>
-		DateTime,
-
-		/// <summary>
-		/// A time span field type.
-		/// </summary>
-		TimeSpan,
-
-		/// <summary>
-		/// A boolean field type.
-		/// </summary>
-		Boolean,
-
-		/// <summary>
-		/// An auto-increment field descriptor type.
-		/// </summary>
-		AutoIncrementFieldDescriptor,
-
-		/// <summary>
-		/// A DOM instance field descriptor type.
-		/// </summary>
-		DomInstanceFieldDescriptor,
-
-		/// <summary>
-		/// A DOM instance value field descriptor type.
-		/// </summary>
-		DomInstanceValueFieldDescriptor,
-
-		/// <summary>
-		/// An element field descriptor type.
-		/// </summary>
-		ElementFieldDescriptor,
-
-		/// <summary>
-		/// A generic enum field descriptor type.
-		/// </summary>
-		GenericEnumFieldDescriptor,
-
-		/// <summary>
-		/// A record field descriptor type.
-		/// </summary>
-		RecordFieldDescriptor,
-
-		/// <summary>
-		/// A reservation field descriptor type.
-		/// </summary>
-		ReservationFieldDescriptor,
-
-		/// <summary>
-		/// A resource field descriptor type.
-		/// </summary>
-		ResourceFieldDescriptor,
-
-		/// <summary>
-		/// A service definition field descriptor type.
-		/// </summary>
-		ServiceDefinitionFieldDescriptor,
-
-		/// <summary>
-		/// A static text field descriptor type.
-		/// </summary>
-		StaticTextFieldDescriptor,
-
-		/// <summary>
-		/// A user field descriptor type.
-		/// </summary>
-		UserFieldDescriptor,
-
-		/// <summary>
-		/// A group field descriptor type.
-		/// </summary>
-		GroupFieldDescriptor,
-	}
 
 	/// <summary>
 	/// Generic builder class for creating instances of the <see cref="FieldDescriptor"/> class.
