@@ -14,7 +14,7 @@ namespace Skyline.DataMiner.Utils.DOM.Tests.Builders
 		[TestMethod]
 		public void DomModuleBuilder_WithModuleId()
 		{
-			var id1 = "my_module";
+			var id1 = "(slc)resource_studio";
 			var id2 = "MyIncorrectModule";
 
 			var module1 = new DomModuleBuilder()

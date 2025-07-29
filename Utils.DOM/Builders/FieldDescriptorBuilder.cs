@@ -241,7 +241,7 @@ namespace Skyline.DataMiner.Utils.DOM.Builders
 				Tooltip = _fieldDescriptor.Tooltip,
 			};
 			newField.DomDefinitionIds.AddRange(_fieldDescriptor.DomDefinitionIds.Where(
-			def => String.IsNullOrEmpty(_fieldDescriptor.ModuleId) || def.ModuleId == module));
+				def => String.IsNullOrEmpty(module) || def.ModuleId == module));
 
 			_fieldDescriptor = newField;
 			return this;

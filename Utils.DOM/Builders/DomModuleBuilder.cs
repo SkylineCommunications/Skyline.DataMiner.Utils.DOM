@@ -17,7 +17,7 @@ namespace Skyline.DataMiner.Utils.DOM.Builders
 		/// <summary>
 		/// Regular expression used to validate module IDs.
 		/// </summary>
-		private readonly Regex _moduleValidator = new Regex(@"^[a-z0-9_]{1,40}$", RegexOptions.Compiled);
+		private readonly Regex _moduleValidator = new Regex(@"^(?!.*[A-Z\\/\\*\\?""<>| ,#:\-]).{1,40}$", RegexOptions.Compiled);
 
 		/// <summary>
 		/// The <see cref="ModuleSettings"/> instance being built.
