@@ -1,4 +1,6 @@
-﻿namespace Skyline.DataMiner.Utils.DOM.Builders
+﻿// Ignore Spelling: Utils
+
+namespace Skyline.DataMiner.Utils.DOM.Builders
 {
     using System;
 

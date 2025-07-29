@@ -23,17 +23,24 @@
 		<RepositoryType>git</RepositoryType>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="Skyline.DataMiner.Dev.Common" Version="10.5.2" />
 	</ItemGroup>
+	
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+	
 	<ItemGroup>
 		<None Include="..\README.md" Pack="true" PackagePath="" />
 		<None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
 		<None Include="nuget\Icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
+
+	<Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="C:\Skyline_Data\Nuget Store\$(PackageId)" />
+	</Target>
 </Project>

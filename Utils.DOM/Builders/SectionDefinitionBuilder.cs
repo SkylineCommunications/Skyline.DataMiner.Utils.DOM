@@ -1,4 +1,6 @@
-﻿namespace Skyline.DataMiner.Utils.DOM.Builders
+﻿// Ignore Spelling: Utils
+
+namespace Skyline.DataMiner.Utils.DOM.Builders
 {
 	using System;
 
@@ -122,11 +124,13 @@
 		/// <summary>
 		/// Adds a field descriptor to the section definition using a builder.
 		/// </summary>
-		/// <typeparam name="TFieldDescriptor">The type of the field descriptor builder.</typeparam>
+		/// <typeparam name="TFieldDescriptorBuilder">The type of the field descriptor builder.</typeparam>
+		/// <typeparam name="TFieldDescriptor">The type of the field descriptor.</typeparam>
 		/// <param name="fieldDescriptorBuilder">The field descriptor builder instance.</param>
 		/// <returns>The builder instance.</returns>
-		public T AddFieldDescriptor<TFieldDescriptor>(FieldDescriptorBuilder<TFieldDescriptor> fieldDescriptorBuilder)
-			where TFieldDescriptor : FieldDescriptorBuilder<TFieldDescriptor>
+		public T AddFieldDescriptor<TFieldDescriptorBuilder, TFieldDescriptor>(FieldDescriptorBuilder<TFieldDescriptorBuilder, TFieldDescriptor> fieldDescriptorBuilder)
+			where TFieldDescriptorBuilder : FieldDescriptorBuilder<TFieldDescriptorBuilder, TFieldDescriptor>
+			where TFieldDescriptor : FieldDescriptor, new()
 		{
 			if (fieldDescriptorBuilder == null)
 			{
