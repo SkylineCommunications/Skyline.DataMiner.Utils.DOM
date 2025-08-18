@@ -5,6 +5,7 @@
 	using System.Linq;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 
@@ -158,6 +159,30 @@
 				?? throw new ArgumentException($"Couldn't find section definition with name '{definitionName}'", nameof(definitionName));
 
 			return instance.GetSectionsWithDefinition(definition);
+		}
+
+		/// <summary>
+		/// Creates a deep clone of the specified <see cref="DomInstance"/>, including audit tracking properties.
+		/// </summary>
+		/// <param name="instance">The <see cref="DomInstance"/> to clone.</param>
+		/// <returns>
+		/// A deep clone of the <see cref="DomInstance"/>, with <see cref="ITrackCreatedAt.CreatedAt"/>, 
+		/// <see cref="ITrackCreatedBy.CreatedBy"/>, <see cref="ITrackLastModified.LastModified"/>, and 
+		/// <see cref="ITrackLastModifiedBy.LastModifiedBy"/> properties copied from the original instance.
+		/// </returns>
+		/// <remarks>
+		/// The returned clone is a new instance with the same data and audit tracking information as the original.
+		/// </remarks>
+		public static DomInstance DeepClone(this DomInstance instance)
+		{
+			var clone = (DomInstance)instance.Clone();
+
+			((ITrackCreatedAt)clone).CreatedAt = ((ITrackCreatedAt)instance).CreatedAt;
+			((ITrackCreatedBy)clone).CreatedBy = ((ITrackCreatedBy)instance).CreatedBy;
+			((ITrackLastModified)clone).LastModified = ((ITrackLastModified)instance).LastModified;
+			((ITrackLastModifiedBy)clone).LastModifiedBy = ((ITrackLastModifiedBy)instance).LastModifiedBy;
+
+			return clone;
 		}
 	}
 }
