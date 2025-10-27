@@ -25,7 +25,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Skyline.DataMiner.Dev.Common" Version="10.5.2" />
+		<PackageReference Include="Skyline.DataMiner.Dev.Common" Version="10.5.11.1" />
 	</ItemGroup>
 
 	<ItemGroup>
