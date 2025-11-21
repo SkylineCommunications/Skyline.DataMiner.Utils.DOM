@@ -31,7 +31,8 @@
 		/// Initializes a new instance of the <see cref="DomConnectionMock"/> class
 		/// with a default instance of <see cref="DomSLNetMessageHandler"/>.
 		/// </summary>
-		public DomConnectionMock() : this(new DomSLNetMessageHandler())
+		/// <param name="validateAgainstDefinition">If set to <c>true</c>, validates DOM instances against their definitions, section definitions, and required fields when performing CRUD operations.</param>
+		public DomConnectionMock(bool validateAgainstDefinition = false) : this(new DomSLNetMessageHandler(validateAgainstDefinition))
 		{
 		}
 

@@ -44,6 +44,18 @@
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="DomHelperMock"/>.
+		/// </summary>
+		/// <param name="moduleId">ID of the DOM module.</param>
+		/// <param name="validateAgainstDefinition">If set to <c>true</c>, validates DOM instances against their definitions, section definitions, and required fields when performing CRUD operations.</param>
+		/// <returns>A new instance of <see cref="DomHelperMock"/>.</returns>
+		public static DomHelperMock Create(string moduleId, bool validateAgainstDefinition)
+		{
+			var messageHandler = new DomSLNetMessageHandler(validateAgainstDefinition);
+			return new DomHelperMock(messageHandler, moduleId);
+		}
+
+		/// <summary>
 		/// Creates a new instance of <see cref="DomHelperMock"/> with pre-defined instances.
 		/// </summary>
 		/// <param name="instances">The pre-defined collection of DOM instances.</param>

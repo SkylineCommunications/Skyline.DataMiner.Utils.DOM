@@ -22,11 +22,15 @@
 	{
 		private readonly ConcurrentDictionary<string, DomModule> _domModules = new ConcurrentDictionary<string, DomModule>();
 
+		private readonly bool _validateAgainstDefinition;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="DomSLNetMessageHandler"/> class.
 		/// </summary>
-		public DomSLNetMessageHandler()
+		/// <param name="validateAgainstDefinition">If set to <c>true</c>, validates DOM instances against their definitions, section definitions, and required fields when performing CRUD operations.</param>
+		public DomSLNetMessageHandler(bool validateAgainstDefinition = false)
 		{
+			_validateAgainstDefinition = validateAgainstDefinition;
 		}
 
 		/// <summary>
@@ -300,6 +304,8 @@
 
 						module.TrySetNameOnDomInstance(instance);
 
+						ValidateInstance(module, instance);
+
 						if (!module.Instances.TryAdd(instance.ID, instance))
 						{
 							throw new InvalidOperationException($"Instance with ID '{instance.ID.Id}' already exists in module '{request.ModuleId}'.");
@@ -323,6 +329,8 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
+
+						ValidateInstance(module, instance);
 
 						if (!module.Instances.ContainsKey(instance.ID))
 						{
@@ -389,6 +397,9 @@
 							((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
 
 							module.TrySetNameOnDomInstance(obj);
+
+							ValidateInstance(module, obj);
+
 							module.Instances[obj.ID] = obj;
 						}
 
@@ -414,7 +425,7 @@
 						foreach (var instance in instances)
 						{
 							var instanceId = instance.ID;
-			
+
 							module.Instances.TryRemove(instanceId, out var removed);
 							successfulIds.Add(instanceId);
 							@event.Deleted.Add(removed);
@@ -624,6 +635,50 @@
 			}
 
 			return _domModules.GetOrAdd(moduleId, x => new DomModule(x));
+		}
+
+		private void ValidateInstance(DomModule module, DomInstance instance)
+		{
+			if (!_validateAgainstDefinition)
+			{
+				return;
+			}
+
+			if (!module.Definitions.TryGetValue(instance.DomDefinitionId, out var definition))
+			{
+				throw new InvalidOperationException($"Definition with ID '{instance.DomDefinitionId.Id}' not found in module '{module.ModuleId}'.");
+			}
+
+			foreach (var section in instance.Sections)
+			{
+				if (!module.SectionDefinitions.TryGetValue(section.SectionDefinitionID, out var sectionDefinition))
+				{
+					throw new InvalidOperationException($"Section definition with ID '{section.SectionDefinitionID.Id}' not found in module '{module.ModuleId}'.");
+				}
+
+				foreach (var fieldValue in section.FieldValues)
+				{
+					var fieldDescriptor = sectionDefinition.GetFieldDescriptorById(fieldValue.FieldDescriptorID);
+					if (fieldDescriptor == null)
+					{
+						throw new InvalidOperationException($"Field descriptor with ID '{fieldValue.FieldDescriptorID.Id}' not found in section '{section.SectionDefinitionID.Id}' of module '{module.ModuleId}'.");
+					}
+				}
+
+				foreach (var fieldDescriptor in sectionDefinition.GetAllFieldDescriptors())
+				{
+					if (fieldDescriptor.IsOptional)
+					{
+						continue;
+					}
+
+					var fieldValue = section.GetFieldValueById(fieldDescriptor.ID);
+					if (fieldValue == null)
+					{
+						throw new InvalidOperationException($"Required field '{fieldDescriptor.Name}' (ID: '{fieldDescriptor.ID.Id}') is missing in section '{section.SectionDefinitionID.Id}' of instance '{instance.ID.Id}' in module '{module.ModuleId}'.");
+					}
+				}
+			}
 		}
 	}
 }
