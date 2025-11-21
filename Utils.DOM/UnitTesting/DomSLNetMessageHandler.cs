@@ -286,15 +286,15 @@
 				case ManagerStoreReadRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Query.ExecuteInMemory(module.Instances.Values).ToList();
-						response = new ManagerStoreCrudResponse<DomInstance>(instances.Clone());
+						var instances = request.Query.ExecuteInMemory(module.Instances.Values).Select(instance => instance.DeepClone()).ToList();
+						response = new ManagerStoreCrudResponse<DomInstance>(instances);
 						return true;
 					}
 
 				case ManagerStoreCreateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instance = (DomInstance)request.Object.Clone();
+						var instance = request.Object.DeepClone();
 
 						var utcNow = DateTime.UtcNow;
 						((ITrackCreatedAt)instance).CreatedAt = utcNow;
@@ -322,7 +322,7 @@
 				case ManagerStoreUpdateRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instance = (DomInstance)request.Object.Clone();
+						var instance = request.Object.DeepClone();
 
 						var utcNow = DateTime.UtcNow;
 						((ITrackLastModified)instance).LastModified = utcNow;
@@ -350,7 +350,7 @@
 				case ManagerStoreDeleteRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instance = (DomInstance)request.Object.Clone();
+						var instance = request.Object.DeepClone();
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
@@ -376,7 +376,7 @@
 						var utcNow = DateTime.UtcNow;
 
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Objects.Clone();
+						var instances = request.Objects.Select(instance => instance.DeepClone()).ToList();
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
@@ -416,7 +416,7 @@
 				case ManagerStoreBulkDeleteRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Objects.Clone();
+						var instances = request.Objects.Select(instance => instance.DeepClone()).ToList();
 
 						var successfulIds = new List<DomInstanceId>();
 						var unsuccessfulIds = new List<DomInstanceId>();
@@ -444,7 +444,7 @@
 					{
 						var module = GetDomModule(request.ModuleId);
 						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
-						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Clone());
+						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
 						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
 
 						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
