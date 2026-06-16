@@ -118,8 +118,9 @@
 
 			foreach (var instance in instances)
 			{
-				module.TrySetNameOnDomInstance(instance);
-				module.Instances.TryAdd(instance.ID, instance);
+				var clone = instance.DeepClone();
+				module.TrySetNameOnDomInstance(clone);
+				module.Instances.TryAdd(clone.ID, clone);
 			}
 		}
 
@@ -312,10 +313,10 @@
 						}
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Created.Add(instance);
+						@event.Created.Add(instance.DeepClone());
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(instance);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance.DeepClone());
 						return true;
 					}
 
@@ -340,10 +341,10 @@
 						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Updated.Add(instance);
+						@event.Updated.Add(instance.DeepClone());
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(instance);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance.DeepClone());
 						return true;
 					}
 
@@ -355,7 +356,7 @@
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
 						module.Instances.TryRemove(instance.ID, out var removed);
-						@event.Deleted.Add(instance);
+						@event.Deleted.Add(instance.DeepClone());
 
 						OnInstancesChanged?.Invoke(this, @event);
 
@@ -382,15 +383,12 @@
 
 						foreach (var obj in instances)
 						{
-							if (!module.Instances.ContainsKey(obj.ID))
+							var isCreate = !module.Instances.ContainsKey(obj.ID);
+
+							if (isCreate)
 							{
-								@event.Created.Add(obj);
 								((ITrackCreatedAt)obj).CreatedAt = utcNow;
 								((ITrackCreatedBy)obj).CreatedBy = "DomSLNetMessageHandler";
-							}
-							else
-							{
-								@event.Updated.Add(obj);
 							}
 
 							((ITrackLastModified)obj).LastModified = utcNow;
@@ -401,13 +399,23 @@
 							ValidateInstance(module, obj);
 
 							module.Instances[obj.ID] = obj;
+
+							if (isCreate)
+							{
+								@event.Created.Add(obj.DeepClone());
+							}
+							else
+							{
+								@event.Updated.Add(obj.DeepClone());
+							}
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						var traceData = instances.ToDictionary(x => x.ID, x => new TraceData());
+						var resultInstances = instances.Select(instance => instance.DeepClone()).ToList();
+						var traceData = resultInstances.ToDictionary(x => x.ID, x => new TraceData());
 						var unsuccessfulIds = new List<DomInstanceId>();
-						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(instances, unsuccessfulIds, traceData);
+						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(resultInstances, unsuccessfulIds, traceData);
 
 						response = new ManagerStoreCrudResponse<DomInstance>(result);
 						return true;
@@ -619,12 +627,16 @@
 				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}', but '{instance.StatusId}'");
 			}
 
-			var utcNow = DateTime.UtcNow;
-			((ITrackLastModified)instance).LastModified = utcNow;
-			((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
-			instance.StatusId = transition.ToStatusId;
+			var updatedInstance = instance.DeepClone();
 
-			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
+			var utcNow = DateTime.UtcNow;
+			((ITrackLastModified)updatedInstance).LastModified = utcNow;
+			((ITrackLastModifiedBy)updatedInstance).LastModifiedBy = "DomSLNetMessageHandler";
+			updatedInstance.StatusId = transition.ToStatusId;
+
+			module.Instances[request.DomInstanceId] = updatedInstance;
+
+			return new DomInstanceStatusTransitionResponseMessage { DomInstance = updatedInstance.DeepClone() };
 		}
 
 		private DomModule GetDomModule(string moduleId)
