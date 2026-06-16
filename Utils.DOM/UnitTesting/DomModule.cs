@@ -47,5 +47,23 @@
 
 			nameDefinition?.SetNameOnDomInstance(instance);
 		}
+
+		public void TrySetInitialStatusOnDomInstance(DomInstance instance)
+		{
+			if (instance is null || !String.IsNullOrEmpty(instance.StatusId) || instance.DomDefinitionId is null)
+			{
+				return;
+			}
+
+			if (!Definitions.TryGetValue(instance.DomDefinitionId, out var definition) || definition.DomBehaviorDefinitionId is null)
+			{
+				return;
+			}
+
+			if (BehaviorDefinitions.TryGetValue(definition.DomBehaviorDefinitionId, out var behavior))
+			{
+				instance.StatusId = behavior.InitialStatusId;
+			}
+		}
 	}
 }
