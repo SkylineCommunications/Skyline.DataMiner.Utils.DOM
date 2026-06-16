@@ -12,8 +12,10 @@
 	using Skyline.DataMiner.Net.Helper;
 	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
+	using Skyline.DataMiner.Utils.DOM.UnitTesting.Querying;
 
 	/// <summary>
 	/// Represents a handler for handling DMS messages related to DOM (Data Object Model) entities.
@@ -287,7 +289,8 @@
 				case ManagerStoreReadRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Query.ExecuteInMemory(module.Instances.Values).Select(instance => instance.DeepClone()).ToList();
+						var filtered = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values);
+						var instances = request.Query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).Select(instance => instance.DeepClone()).ToList();
 						response = new ManagerStoreCrudResponse<DomInstance>(instances);
 						return true;
 					}
@@ -304,6 +307,7 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
+						module.TrySetInitialStatusOnDomInstance(instance);
 
 						ValidateInstance(module, instance);
 
@@ -367,7 +371,7 @@
 				case ManagerStoreCountRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var count = request.Query.ExecuteInMemory(module.Instances.Values).LongCount();
+						var count = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values).LongCount();
 						response = new ManagerStoreCountResponse<DomInstance>(count);
 						return true;
 					}
@@ -395,6 +399,7 @@
 							((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
 
 							module.TrySetNameOnDomInstance(obj);
+							module.TrySetInitialStatusOnDomInstance(obj);
 
 							ValidateInstance(module, obj);
 
@@ -451,7 +456,8 @@
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
+						var filtered = CoercingFilterEvaluator.Apply(request.Filter.Filter, module.Instances.Values);
+						var instances = request.Filter.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
 						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
 						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
 
