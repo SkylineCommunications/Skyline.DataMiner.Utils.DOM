@@ -107,9 +107,10 @@ namespace Skyline.DataMiner.Utils.DOM.UnitTesting.Querying
 			{
 				value = reference.SerializableExposer.Exposer.execute(instance);
 			}
-			catch (KeyNotFoundException)
+			catch
 			{
-				// The instance doesn't have a value for the requested field.
+				// Mirror the fail-safe behavior of a real DataMiner Agent: a field that cannot be read
+				// (e.g. the instance has no value for the requested field descriptor) has no value.
 				return false;
 			}
 
