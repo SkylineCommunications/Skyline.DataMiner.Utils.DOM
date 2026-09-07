@@ -30,7 +30,7 @@
 				throw new ArgumentNullException(nameof(helper));
 			}
 
-			if (id == null)
+			if (id == Guid.Empty)
 			{
 				return null;
 			}
@@ -59,7 +59,7 @@
 				throw new ArgumentNullException(nameof(fields));
 			}
 
-			if (id == null)
+			if (id == Guid.Empty)
 			{
 				return null;
 			}

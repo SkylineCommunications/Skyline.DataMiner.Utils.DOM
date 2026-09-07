@@ -378,7 +378,8 @@
 			}
 		}
 
-		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType		{
+		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType
+		{
 			var pagingHelper = helper.PreparePaging(filter, pageSize);
 
 			while (pagingHelper.MoveToNextPage())
