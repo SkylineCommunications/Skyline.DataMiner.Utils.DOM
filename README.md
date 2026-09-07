@@ -76,6 +76,43 @@ public DomInstance CreateDomInstance()
 }
 ```
 
+### Reading selected fields
+
+From DataMiner 10.6.0/10.6.1 onwards, the `DomInstances` CRUD helper can read only a [selected subset of fields](https://docs.dataminer.services/dataminer/Functions/DOM/DOM_helper_crud_methods.html#reading-selected-fields) instead of the full DOM instances. This reduces the amount of data that is transferred and can significantly improve performance.
+
+The `DomHelperMock` supports this, so code using partial reads can be unit tested in the same way as code reading full instances:
+
+```cs
+var domHelper = DomHelperMock.Create(instances);
+
+var selectedFields = new SelectedFields<DomInstance>()
+	.Add(DomInstanceExposers.Name)
+	.Add(DomInstanceExposers.StatusId)
+	.Add(FleFlows.Sections.FlowInfo.Name); // FieldDescriptorID
+
+var filter = DomInstanceExposers.DomDefinitionId.Equal(FleFlows.Definitions.Flow.ID.Id);
+
+foreach (var partialInstance in domHelper.DomInstances.Read(filter, selectedFields))
+{
+	var id = partialInstance.Id;
+	var name = partialInstance.GetValue(DomInstanceExposers.Name);
+	var flowName = partialInstance.GetValue<string>(FleFlows.Sections.FlowInfo.Name);
+}
+```
+
+The `ReadPaged` extension method can be used to read the selected fields page by page:
+
+```cs
+foreach (var page in domHelper.DomInstances.ReadPaged(filter, selectedFields, pageSize: 500))
+{
+	// handle current page of partial DOM instances
+}
+```
+
+> [!NOTE]
+> Values are returned with the type they were stored with, just like when reading the full DOM instance.
+> Selecting the `FieldValues` or `FullObject` exposer is not supported and results in a failed read.
+
 ### Unit testing
 
 Using the `DomHelperMock` and `DomCacheMock` classes it's possible to execute DOM queries completely on memory on a provided collection of DOM instances and definitions.
