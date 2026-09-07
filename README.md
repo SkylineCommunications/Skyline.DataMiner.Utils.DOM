@@ -109,8 +109,25 @@ foreach (var page in domHelper.DomInstances.ReadPaged(filter, selectedFields, pa
 }
 ```
 
+Use `ReadAllPaged` to read the selected fields of all DOM instances page by page:
+
+```cs
+foreach (var page in domHelper.DomInstances.ReadAllPaged(selectedFields, pageSize: 500))
+{
+	// handle current page of partial DOM instances
+}
+```
+
+The `GetByID` and `ReadAll` extension methods also have overloads that take selected fields:
+
+```cs
+var partialInstance = domHelper.DomInstances.GetByID(instanceId, selectedFields);
+var partialInstances = domHelper.DomInstances.ReadAll(FleFlows.Definitions.Flow, selectedFields);
+```
+
 > [!NOTE]
 > Values are returned with the type they were stored with, just like when reading the full DOM instance.
+> Reading a field that wasn't selected throws an `InvalidOperationException`, while a selected field without a value simply returns null.
 > Selecting the `FieldValues` or `FullObject` exposer is not supported and results in a failed read.
 
 ### Unit testing

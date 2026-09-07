@@ -156,6 +156,33 @@
 		}
 
 		/// <summary>
+		/// Reads a selected subset of fields of all items in a paged manner with the specified page size.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The helper component used to retrieve data.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <param name="pageSize">The size of each page to retrieve.</param>
+		/// <returns>An enumerable collection of pages with partial objects.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<IEnumerable<PartialObject<T, K>>> ReadAllPaged<T, K>(this ISelectHelperComponent<T, K> helper, SelectedFields<T> fields, int pageSize = 500)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			return ReadPagedIterator(helper, new TRUEFilterElement<T>().ToQuery(), fields, pageSize);
+		}
+
+		/// <summary>
 		/// Creates or updates a collection of instances in batches.
 		/// </summary>
 		/// <typeparam name="T">The type of the data elements.</typeparam>

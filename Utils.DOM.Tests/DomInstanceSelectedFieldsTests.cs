@@ -128,7 +128,7 @@ namespace Skyline.DataMiner.Utils.DOM.Tests
 		}
 
 		[TestMethod]
-		public void DomInstances_Read_SelectedFields_UnsupportedExposer()
+		public void DomInstances_Read_SelectedFields_FullObjectExposer()
 		{
 			// arrange
 			var testData = new TestData();
@@ -187,18 +187,45 @@ namespace Skyline.DataMiner.Utils.DOM.Tests
 		}
 
 		[TestMethod]
+		public void DomInstances_Read_SelectedFields_OtherFieldsAreNotReturned()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+
+			// Instance1 has a value for Field 2, but it isn't selected
+			var filter = DomInstanceExposers.Id.Equal(TestData.Instance1.ID.Id);
+
+			// act
+			var result = testData.DomHelper.DomInstances.Read(filter, selectedFields).Single();
+
+			// assert
+			result.GetValues<string>(Field1Id).Should().BeEquivalentTo(new[] { "Value 1" });
+
+			// a field that wasn't requested is not returned at all, as opposed to a requested field without a value
+			result.Invoking(x => x.GetValues<int>(Field2Id)).Should().Throw<InvalidOperationException>();
+			result.Invoking(x => x.GetValue(DomInstanceExposers.DomDefinitionId)).Should().Throw<InvalidOperationException>();
+			result.TryGetValue<int>(Field2Id, out _).Should().BeFalse();
+			result.TryGetValue(DomInstanceExposers.DomDefinitionId, out _).Should().BeFalse();
+		}
+
+		[TestMethod]
 		public void DomInstances_Read_SelectedFields_WithSorting()
 		{
 			// arrange
 			var testData = new TestData();
 			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
-			var query = new TRUEFilterElement<DomInstance>().OrderByDescending(DomInstanceExposers.Name);
 
 			// act
-			var results = testData.DomHelper.DomInstances.Read(query, selectedFields);
+			var ascending = testData.DomHelper.DomInstances
+				.Read(new TRUEFilterElement<DomInstance>().OrderBy(DomInstanceExposers.Id), selectedFields);
+
+			var descending = testData.DomHelper.DomInstances
+				.Read(new TRUEFilterElement<DomInstance>().OrderByDescending(DomInstanceExposers.Id), selectedFields);
 
 			// assert
-			results.Should().HaveCount(2);
+			ascending.Select(x => x.Id).Should().HaveCount(2);
+			descending.Select(x => x.Id).Should().Equal(ascending.Select(x => x.Id).Reverse());
 		}
 
 		[TestMethod]
@@ -256,6 +283,86 @@ namespace Skyline.DataMiner.Utils.DOM.Tests
 			pages.Should().HaveCount(2);
 			pages.SelectMany(x => x).Select(x => x.Id)
 				.Should().BeEquivalentTo(new[] { TestData.Instance1.ID, TestData.Instance2.ID });
+		}
+
+		[TestMethod]
+		public void DomInstances_ReadAllPaged_SelectedFields()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+
+			// act
+			var pages = testData.DomHelper.DomInstances
+				.ReadAllPaged(selectedFields, 1)
+				.ToList();
+
+			// assert
+			pages.Should().HaveCount(2);
+			pages.SelectMany(x => x).Select(x => x.Id)
+				.Should().BeEquivalentTo(new[] { TestData.Instance1.ID, TestData.Instance2.ID });
+			pages.SelectMany(x => x).Should().OnlyContain(x => x.GetValues<string>(Field1Id) != null);
+		}
+
+		[TestMethod]
+		public void DomInstances_GetByID_SelectedFields()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+
+			// act
+			var result = testData.DomHelper.DomInstances.GetByID(TestData.Instance1.ID.Id, selectedFields);
+
+			// assert
+			result.Should().NotBeNull();
+			result.Id.Should().Be(TestData.Instance1.ID);
+			result.GetValue<string>(Field1Id).Should().Be("Value 1");
+		}
+
+		[TestMethod]
+		public void DomInstances_GetByID_SelectedFields_NotFound()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+
+			// act
+			var result = testData.DomHelper.DomInstances.GetByID(Guid.NewGuid(), selectedFields);
+
+			// assert
+			result.Should().BeNull();
+		}
+
+		[TestMethod]
+		public void DomInstances_ReadAll_ByDefinition_SelectedFields()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+
+			// act
+			var results = testData.DomHelper.DomInstances.ReadAll(TestData.Definition1, selectedFields).ToList();
+
+			// assert
+			results.Select(x => x.Id)
+				.Should().BeEquivalentTo(new[] { TestData.Instance1.ID, TestData.Instance2.ID });
+			results.Should().OnlyContain(x => x.GetValues<string>(Field1Id) != null);
+		}
+
+		[TestMethod]
+		public void DomInstances_ReadAll_ByDefinition_SelectedFields_OtherDefinition()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+			var definitionId = new DomDefinitionId(Guid.NewGuid());
+
+			// act
+			var results = testData.DomHelper.DomInstances.ReadAll(definitionId, selectedFields);
+
+			// assert
+			results.Should().BeEmpty();
 		}
 	}
 }

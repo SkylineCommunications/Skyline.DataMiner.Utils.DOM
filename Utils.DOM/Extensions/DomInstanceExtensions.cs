@@ -5,7 +5,9 @@
 	using System.Linq;
 
 	using Skyline.DataMiner.Net.Apps.DataMinerObjectModel;
+	using Skyline.DataMiner.Net.Apps.ManagerStore.Select;
 	using Skyline.DataMiner.Net.ManagerStore;
+	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 
@@ -35,6 +37,35 @@
 
 			var filter = DomInstanceExposers.Id.Equal(id);
 			return helper.Read(filter).SingleOrDefault();
+		}
+
+		/// <summary>
+		/// Gets a selected subset of fields of a <see cref="DomInstance"/> by ID.
+		/// </summary>
+		/// <param name="helper">The <see cref="DomInstanceCrudHelperComponent"/>.</param>
+		/// <param name="id">The ID of the <see cref="DomInstance"/>.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <returns>The partial <see cref="DomInstance"/> with the specified ID, or null if not found.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="helper"/> or <paramref name="fields"/> is null.</exception>
+		public static PartialObject<DomInstance, DomInstanceId> GetByID(this DomInstanceCrudHelperComponent helper, Guid id, SelectedFields<DomInstance> fields)
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			if (id == null)
+			{
+				return null;
+			}
+
+			var filter = DomInstanceExposers.Id.Equal(id);
+			return helper.Read(filter, fields).SingleOrDefault();
 		}
 
 		/// <summary>
@@ -81,6 +112,59 @@
 			}
 
 			return helper.ReadAll(definition.ID);
+		}
+
+		/// <summary>
+		/// Reads a selected subset of fields of all <see cref="DomInstance"/> objects with the specified <see cref="DomDefinitionId"/>.
+		/// </summary>
+		/// <param name="helper">The <see cref="DomInstanceCrudHelperComponent"/>.</param>
+		/// <param name="definitionId">The <see cref="DomDefinitionId"/>.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <returns>An <see cref="IEnumerable{T}"/> of partial <see cref="DomInstance"/> objects.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="helper"/>, <paramref name="definitionId"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<PartialObject<DomInstance, DomInstanceId>> ReadAll(this DomInstanceCrudHelperComponent helper, DomDefinitionId definitionId, SelectedFields<DomInstance> fields)
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (definitionId == null)
+			{
+				throw new ArgumentNullException(nameof(definitionId));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			var filter = DomInstanceExposers.DomDefinitionId.Equal(definitionId.Id);
+
+			return helper.Read(filter, fields);
+		}
+
+		/// <summary>
+		/// Reads a selected subset of fields of all <see cref="DomInstance"/> objects with the specified <see cref="DomDefinition"/>.
+		/// </summary>
+		/// <param name="helper">The <see cref="DomInstanceCrudHelperComponent"/>.</param>
+		/// <param name="definition">The <see cref="DomDefinition"/>.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <returns>An <see cref="IEnumerable{T}"/> of partial <see cref="DomInstance"/> objects.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="helper"/>, <paramref name="definition"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<PartialObject<DomInstance, DomInstanceId>> ReadAll(this DomInstanceCrudHelperComponent helper, DomDefinition definition, SelectedFields<DomInstance> fields)
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (definition == null)
+			{
+				throw new ArgumentNullException(nameof(definition));
+			}
+
+			return helper.ReadAll(definition.ID, fields);
 		}
 
 		/// <summary>
