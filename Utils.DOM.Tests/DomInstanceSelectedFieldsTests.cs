@@ -15,6 +15,8 @@ namespace Skyline.DataMiner.Utils.DOM.Tests
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
 
+	using SLDataGateway.API.Querying;
+
 	[TestClass]
 	public class DomInstanceSelectedFieldsTests
 	{
@@ -136,6 +138,83 @@ namespace Skyline.DataMiner.Utils.DOM.Tests
 			testData.DomHelper.DomInstances
 				.Invoking(x => x.Read(new TRUEFilterElement<DomInstance>(), selectedFields))
 				.Should().Throw<InvalidOperationException>();
+		}
+
+		[TestMethod]
+		public void DomInstances_Read_SelectedFields_FieldValuesExposer()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(DomInstanceExposers.FieldValues);
+
+			// act & assert
+			testData.DomHelper.DomInstances
+				.Invoking(x => x.Read(new TRUEFilterElement<DomInstance>(), selectedFields))
+				.Should().Throw<InvalidOperationException>();
+		}
+
+		[TestMethod]
+		public void DomInstances_Read_SelectedFields_ListExposer()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>()
+				.Add(DomInstanceExposers.Id)
+				.Add(DomInstanceExposers.SectionDefinitionIds);
+
+			var filter = DomInstanceExposers.Id.Equal(TestData.Instance2.ID.Id);
+
+			// act
+			var result = testData.DomHelper.DomInstances.Read(filter, selectedFields).Single();
+
+			// assert
+			result.GetValue(DomInstanceExposers.Id).Should().Be(TestData.Instance2.ID.Id);
+			result.GetValue(DomInstanceExposers.SectionDefinitionIds)
+				.Should().BeEquivalentTo(new[] { TestData.SectionDefinition1.GetID().Id, TestData.SectionDefinition2.GetID().Id });
+		}
+
+		[TestMethod]
+		public void DomInstances_Read_SelectedFields_WithoutSelectedFields()
+		{
+			// arrange
+			var testData = new TestData();
+
+			// act
+			var results = testData.DomHelper.DomInstances.Read(new TRUEFilterElement<DomInstance>(), new SelectedFields<DomInstance>());
+
+			// assert
+			results.Select(x => x.Id).Should().BeEquivalentTo(new[] { TestData.Instance1.ID, TestData.Instance2.ID });
+		}
+
+		[TestMethod]
+		public void DomInstances_Read_SelectedFields_WithSorting()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+			var query = new TRUEFilterElement<DomInstance>().OrderByDescending(DomInstanceExposers.Name);
+
+			// act
+			var results = testData.DomHelper.DomInstances.Read(query, selectedFields);
+
+			// assert
+			results.Should().HaveCount(2);
+		}
+
+		[TestMethod]
+		public void DomInstances_Read_SelectedFields_FilterOnFieldValue()
+		{
+			// arrange
+			var testData = new TestData();
+			var selectedFields = new SelectedFields<DomInstance>().Add(Field1Id);
+			var filter = DomInstanceExposers.FieldValues.DomInstanceField(Field1Id).Equal("Value 1");
+
+			// act
+			var result = testData.DomHelper.DomInstances.Read(filter, selectedFields).Single();
+
+			// assert
+			result.Id.Should().Be(TestData.Instance1.ID);
+			result.GetValue<string>(Field1Id).Should().Be("Value 1");
 		}
 
 		[TestMethod]
