@@ -124,19 +124,28 @@ namespace Skyline.DataMiner.Utils.DOM.UnitTesting.Querying
 			return true;
 		}
 
+		/// <remarks>
+		/// The runtime type of an exposer value is only known at runtime, while <see cref="PartialObjectValue{TValue}"/>
+		/// is generic. Reflection is therefore needed to close the generic type. A real DataMiner Agent reports the
+		/// actual type through <see cref="IPartialObjectValue.ValueType"/>, which is used to explain type mismatches
+		/// when reading a value. Always using <c>PartialObjectValue&lt;object&gt;</c> would avoid the reflection but
+		/// would make those messages report <c>System.Object</c> instead of the actual type.
+		/// </remarks>
 		private static Func<int, object, IPartialObjectValue> CreateValueFactory(Type valueType)
 		{
-			var partialObjectValueType = typeof(PartialObjectValue<>).MakeGenericType(valueType);
-			var idProperty = partialObjectValueType.GetProperty(nameof(PartialObjectValue<object>.FieldReferenceId));
-			var valueProperty = partialObjectValueType.GetProperty(nameof(PartialObjectValue<object>.Value));
+			var method = typeof(SelectedFieldsEvaluator)
+				.GetMethod(nameof(CreateValue), BindingFlags.Static | BindingFlags.NonPublic)
+				.MakeGenericMethod(valueType);
 
-			return (id, value) =>
+			return (Func<int, object, IPartialObjectValue>)method.CreateDelegate(typeof(Func<int, object, IPartialObjectValue>));
+		}
+
+		private static IPartialObjectValue CreateValue<TValue>(int id, object value)
+		{
+			return new PartialObjectValue<TValue>
 			{
-				var partialObjectValue = (IPartialObjectValue)Activator.CreateInstance(partialObjectValueType);
-				idProperty.SetValue(partialObjectValue, id, BindingFlags.Default, null, null, null);
-				valueProperty.SetValue(partialObjectValue, value, BindingFlags.Default, null, null, null);
-
-				return partialObjectValue;
+				FieldReferenceId = id,
+				Value = (TValue)value,
 			};
 		}
 	}
