@@ -5,12 +5,14 @@
 	using System.Linq;
 
 	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Net.Apps.ManagerStore.Select;
 	using Skyline.DataMiner.Net.Helper;
 	using Skyline.DataMiner.Net.IManager.Objects;
 	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
 	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 
+	using SLDataGateway.API.Querying;
 	using SLDataGateway.API.Types.Querying;
 
 	/// <summary>
@@ -85,6 +87,99 @@
 			}
 
 			return ReadPaged(helper, new TRUEFilterElement<T>(), pageSize);
+		}
+
+		/// <summary>
+		/// Reads a selected subset of fields in a paged manner using a specified filter.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The helper component used to retrieve data.</param>
+		/// <param name="filter">The filter criteria to apply.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <param name="pageSize">The size of each page to retrieve.</param>
+		/// <returns>An enumerable collection of pages with partial objects.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/>, <paramref name="filter"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<IEnumerable<PartialObject<T, K>>> ReadPaged<T, K>(this ISelectHelperComponent<T, K> helper, FilterElement<T> filter, SelectedFields<T> fields, int pageSize = 500)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (filter == null)
+			{
+				throw new ArgumentNullException(nameof(filter));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			return ReadPagedIterator(helper, filter.ToQuery(), fields, pageSize);
+		}
+
+		/// <summary>
+		/// Reads a selected subset of fields in a paged manner using a specified query.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The helper component used to retrieve data.</param>
+		/// <param name="query">The query to apply to the data.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <param name="pageSize">The size of each page to retrieve.</param>
+		/// <returns>An enumerable collection of pages with partial objects.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/>, <paramref name="query"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<IEnumerable<PartialObject<T, K>>> ReadPaged<T, K>(this ISelectHelperComponent<T, K> helper, IQuery<T> query, SelectedFields<T> fields, int pageSize = 500)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (query == null)
+			{
+				throw new ArgumentNullException(nameof(query));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			return ReadPagedIterator(helper, query, fields, pageSize);
+		}
+
+		/// <summary>
+		/// Reads a selected subset of fields of all items in a paged manner with the specified page size.
+		/// </summary>
+		/// <typeparam name="T">The type of the data elements.</typeparam>
+		/// <typeparam name="K">The type of the identifier for the data elements.</typeparam>
+		/// <param name="helper">The helper component used to retrieve data.</param>
+		/// <param name="fields">The fields to retrieve.</param>
+		/// <param name="pageSize">The size of each page to retrieve.</param>
+		/// <returns>An enumerable collection of pages with partial objects.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="helper"/> or <paramref name="fields"/> is null.</exception>
+		public static IEnumerable<IEnumerable<PartialObject<T, K>>> ReadAllPaged<T, K>(this ISelectHelperComponent<T, K> helper, SelectedFields<T> fields, int pageSize = 500)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			if (helper == null)
+			{
+				throw new ArgumentNullException(nameof(helper));
+			}
+
+			if (fields == null)
+			{
+				throw new ArgumentNullException(nameof(fields));
+			}
+
+			return ReadPagedIterator(helper, new TRUEFilterElement<T>().ToQuery(), fields, pageSize);
 		}
 
 		/// <summary>
@@ -269,6 +364,18 @@
 			result = new BulkDeleteResult<K>(successfulIds, unsuccessfulIds, traceDataPerItem);
 
 			return !result.HasFailures();
+		}
+
+		private static IEnumerable<IEnumerable<PartialObject<T, K>>> ReadPagedIterator<T, K>(ISelectHelperComponent<T, K> helper, IQuery<T> query, SelectedFields<T> fields, int pageSize)
+			where T : IManagerIdentifiableObject<K>, DataType
+			where K : IEquatable<K>
+		{
+			var pagingHelper = helper.PreparePaging(query, fields, pageSize);
+
+			while (pagingHelper.MoveToNextPage())
+			{
+				yield return pagingHelper.GetCurrentPage();
+			}
 		}
 
 		private static IEnumerable<IEnumerable<T>> ReadPagedIterator<T>(ICrudHelperComponent<T> helper, FilterElement<T> filter, long pageSize) where T : DataType

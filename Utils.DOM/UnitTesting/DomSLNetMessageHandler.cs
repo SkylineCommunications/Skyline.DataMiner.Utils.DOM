@@ -12,8 +12,12 @@
 	using Skyline.DataMiner.Net.Helper;
 	using Skyline.DataMiner.Net.ManagerStore;
 	using Skyline.DataMiner.Net.Messages;
+	using Skyline.DataMiner.Net.Messages.SLDataGateway;
 	using Skyline.DataMiner.Net.Sections;
 	using Skyline.DataMiner.Utils.DOM.Extensions;
+	using Skyline.DataMiner.Utils.DOM.UnitTesting.Querying;
+
+	using SLDataGateway.API.Types.Querying;
 
 	/// <summary>
 	/// Represents a handler for handling DMS messages related to DOM (Data Object Model) entities.
@@ -118,8 +122,9 @@
 
 			foreach (var instance in instances)
 			{
-				module.TrySetNameOnDomInstance(instance);
-				module.Instances.TryAdd(instance.ID, instance);
+				var clone = instance.DeepClone();
+				module.TrySetNameOnDomInstance(clone);
+				module.Instances.TryAdd(clone.ID, clone);
 			}
 		}
 
@@ -283,10 +288,21 @@
 
 				#region Instances
 
+				case ManagerStoreSelectReadRequest<DomInstance> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+						var filtered = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values);
+						var instances = request.Query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, instances, request.SelectedFields);
+						response = new ManagerStoreCrudResponse<DomInstance>(result);
+						return true;
+					}
+
 				case ManagerStoreReadRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var instances = request.Query.ExecuteInMemory(module.Instances.Values).Select(instance => instance.DeepClone()).ToList();
+						var filtered = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values);
+						var instances = request.Query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).Select(instance => instance.DeepClone()).ToList();
 						response = new ManagerStoreCrudResponse<DomInstance>(instances);
 						return true;
 					}
@@ -303,6 +319,7 @@
 						((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
 
 						module.TrySetNameOnDomInstance(instance);
+						module.TrySetInitialStatusOnDomInstance(instance);
 
 						ValidateInstance(module, instance);
 
@@ -312,10 +329,10 @@
 						}
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Created.Add(instance);
+						@event.Created.Add(instance.DeepClone());
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(instance);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance.DeepClone());
 						return true;
 					}
 
@@ -340,10 +357,10 @@
 						module.Instances[instance.ID] = instance;
 
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
-						@event.Updated.Add(instance);
+						@event.Updated.Add(instance.DeepClone());
 						OnInstancesChanged?.Invoke(this, @event);
 
-						response = new ManagerStoreCrudResponse<DomInstance>(instance);
+						response = new ManagerStoreCrudResponse<DomInstance>(instance.DeepClone());
 						return true;
 					}
 
@@ -355,7 +372,7 @@
 						var @event = new DomInstancesChangedEventMessage(-1, request.ModuleId);
 
 						module.Instances.TryRemove(instance.ID, out var removed);
-						@event.Deleted.Add(instance);
+						@event.Deleted.Add(instance.DeepClone());
 
 						OnInstancesChanged?.Invoke(this, @event);
 
@@ -366,7 +383,7 @@
 				case ManagerStoreCountRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
-						var count = request.Query.ExecuteInMemory(module.Instances.Values).LongCount();
+						var count = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values).LongCount();
 						response = new ManagerStoreCountResponse<DomInstance>(count);
 						return true;
 					}
@@ -382,32 +399,40 @@
 
 						foreach (var obj in instances)
 						{
-							if (!module.Instances.ContainsKey(obj.ID))
+							var isCreate = !module.Instances.ContainsKey(obj.ID);
+
+							if (isCreate)
 							{
-								@event.Created.Add(obj);
 								((ITrackCreatedAt)obj).CreatedAt = utcNow;
 								((ITrackCreatedBy)obj).CreatedBy = "DomSLNetMessageHandler";
-							}
-							else
-							{
-								@event.Updated.Add(obj);
 							}
 
 							((ITrackLastModified)obj).LastModified = utcNow;
 							((ITrackLastModifiedBy)obj).LastModifiedBy = "DomSLNetMessageHandler";
 
 							module.TrySetNameOnDomInstance(obj);
+							module.TrySetInitialStatusOnDomInstance(obj);
 
 							ValidateInstance(module, obj);
 
 							module.Instances[obj.ID] = obj;
+
+							if (isCreate)
+							{
+								@event.Created.Add(obj.DeepClone());
+							}
+							else
+							{
+								@event.Updated.Add(obj.DeepClone());
+							}
 						}
 
 						OnInstancesChanged?.Invoke(this, @event);
 
-						var traceData = instances.ToDictionary(x => x.ID, x => new TraceData());
+						var resultInstances = instances.Select(instance => instance.DeepClone()).ToList();
+						var traceData = resultInstances.ToDictionary(x => x.ID, x => new TraceData());
 						var unsuccessfulIds = new List<DomInstanceId>();
-						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(instances, unsuccessfulIds, traceData);
+						var result = new BulkCreateOrUpdateResult<DomInstance, DomInstanceId>(resultInstances, unsuccessfulIds, traceData);
 
 						response = new ManagerStoreCrudResponse<DomInstance>(result);
 						return true;
@@ -440,42 +465,33 @@
 						return true;
 					}
 
+				case ManagerStoreSelectStartPagingRequest<DomInstance> request:
+					{
+						var page = StartPaging(request.ModuleId, request.Filter, request.PreferredPageSize, out var isLast, out var cookie);
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, page, request.SelectedFields);
+						response = new ManagerStorePagingResponse<DomInstance>(result, isLast, cookie);
+						return true;
+					}
+
+				case ManagerStoreSelectNextPagingRequest<DomInstance> request:
+					{
+						var page = ContinuePaging(request.ModuleId, request.PagingCookie, request.PreferredPageSize, out var isLast);
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, page, request.SelectedFields);
+						response = new ManagerStorePagingResponse<DomInstance>(result, isLast, request.PagingCookie);
+						return true;
+					}
+
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
-						var module = GetDomModule(request.ModuleId);
-						var instances = request.Filter.ExecuteInMemory(module.Instances.Values).ToList();
-						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
-						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						var page = StartPaging(request.ModuleId, request.Filter, request.PreferredPageSize, out var isLast, out var cookie);
+						response = new ManagerStorePagingResponse<DomInstance>(page, isLast, cookie);
 						return true;
 					}
 
 				case ManagerStoreNextPagingRequest<DomInstance> request:
 					{
-						var module = GetDomModule(request.ModuleId);
-						if (!module.PagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
-						{
-							throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
-						}
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						var page = ContinuePaging(request.ModuleId, request.PagingCookie, request.PreferredPageSize, out var isLast);
+						response = new ManagerStorePagingResponse<DomInstance>(page, isLast, request.PagingCookie);
 						return true;
 					}
 
@@ -619,12 +635,54 @@
 				throw new InvalidOperationException($"Instance doesn't have status '{transition.FromStatusId}', but '{instance.StatusId}'");
 			}
 
-			var utcNow = DateTime.UtcNow;
-			((ITrackLastModified)instance).LastModified = utcNow;
-			((ITrackLastModifiedBy)instance).LastModifiedBy = "DomSLNetMessageHandler";
-			instance.StatusId = transition.ToStatusId;
+			var updatedInstance = instance.DeepClone();
 
-			return new DomInstanceStatusTransitionResponseMessage { DomInstance = instance };
+			var utcNow = DateTime.UtcNow;
+			((ITrackLastModified)updatedInstance).LastModified = utcNow;
+			((ITrackLastModifiedBy)updatedInstance).LastModifiedBy = "DomSLNetMessageHandler";
+			updatedInstance.StatusId = transition.ToStatusId;
+
+			module.Instances[request.DomInstanceId] = updatedInstance;
+
+			return new DomInstanceStatusTransitionResponseMessage { DomInstance = updatedInstance.DeepClone() };
+		}
+
+		private List<DomInstance> StartPaging(string moduleId, IQuery<DomInstance> query, long preferredPageSize, out bool isLast, out PagingCookie cookie)
+		{
+			var module = GetDomModule(moduleId);
+			var filtered = CoercingFilterEvaluator.Apply(query.Filter, module.Instances.Values);
+			var instances = query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
+
+			var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
+			module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
+			cookie = pagingHandler.Cookie;
+
+			return GetNextPage(module, pagingHandler, preferredPageSize, out isLast);
+		}
+
+		private List<DomInstance> ContinuePaging(string moduleId, PagingCookie cookie, long preferredPageSize, out bool isLast)
+		{
+			var module = GetDomModule(moduleId);
+
+			if (!module.PagingHandlers.TryGetValue(cookie, out var pagingHandler))
+			{
+				throw new InvalidOperationException($"Invalid paging cookie: {cookie}");
+			}
+
+			return GetNextPage(module, pagingHandler, preferredPageSize, out isLast);
+		}
+
+		private static List<DomInstance> GetNextPage(DomModule module, DomPagingHandler<DomInstance> pagingHandler, long preferredPageSize, out bool isLast)
+		{
+			var page = pagingHandler.GetNextPage(preferredPageSize, out isLast);
+
+			if (isLast)
+			{
+				module.PagingHandlers.TryRemove(pagingHandler.Cookie, out _);
+				pagingHandler.Dispose();
+			}
+
+			return page;
 		}
 
 		private DomModule GetDomModule(string moduleId)

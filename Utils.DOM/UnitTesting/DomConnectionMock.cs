@@ -84,7 +84,7 @@
 		public Guid ConnectionID => throw new NotImplementedException();
 
 		/// <inheritdoc/>
-		public bool IsShuttingDown => throw new NotImplementedException();
+		public bool IsShuttingDown => false;
 
 		/// <inheritdoc/>
 		public IAsyncMessageHandler Async => throw new NotImplementedException();
