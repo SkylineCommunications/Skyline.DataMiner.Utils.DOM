@@ -17,6 +17,8 @@
 	using Skyline.DataMiner.Utils.DOM.Extensions;
 	using Skyline.DataMiner.Utils.DOM.UnitTesting.Querying;
 
+	using SLDataGateway.API.Types.Querying;
+
 	/// <summary>
 	/// Represents a handler for handling DMS messages related to DOM (Data Object Model) entities.
 	/// </summary>
@@ -286,6 +288,16 @@
 
 				#region Instances
 
+				case ManagerStoreSelectReadRequest<DomInstance> request:
+					{
+						var module = GetDomModule(request.ModuleId);
+						var filtered = CoercingFilterEvaluator.Apply(request.Query.Filter, module.Instances.Values);
+						var instances = request.Query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, instances, request.SelectedFields);
+						response = new ManagerStoreCrudResponse<DomInstance>(result);
+						return true;
+					}
+
 				case ManagerStoreReadRequest<DomInstance> request:
 					{
 						var module = GetDomModule(request.ModuleId);
@@ -453,43 +465,33 @@
 						return true;
 					}
 
+				case ManagerStoreSelectStartPagingRequest<DomInstance> request:
+					{
+						var page = StartPaging(request.ModuleId, request.Filter, request.PreferredPageSize, out var isLast, out var cookie);
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, page, request.SelectedFields);
+						response = new ManagerStorePagingResponse<DomInstance>(result, isLast, cookie);
+						return true;
+					}
+
+				case ManagerStoreSelectNextPagingRequest<DomInstance> request:
+					{
+						var page = ContinuePaging(request.ModuleId, request.PagingCookie, request.PreferredPageSize, out var isLast);
+						var result = SelectedFieldsEvaluator.Apply(request.ModuleId, page, request.SelectedFields);
+						response = new ManagerStorePagingResponse<DomInstance>(result, isLast, request.PagingCookie);
+						return true;
+					}
+
 				case ManagerStoreStartPagingRequest<DomInstance> request:
 					{
-						var module = GetDomModule(request.ModuleId);
-						var filtered = CoercingFilterEvaluator.Apply(request.Filter.Filter, module.Instances.Values);
-						var instances = request.Filter.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
-						var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
-						module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						var page = StartPaging(request.ModuleId, request.Filter, request.PreferredPageSize, out var isLast, out var cookie);
+						response = new ManagerStorePagingResponse<DomInstance>(page, isLast, cookie);
 						return true;
 					}
 
 				case ManagerStoreNextPagingRequest<DomInstance> request:
 					{
-						var module = GetDomModule(request.ModuleId);
-						if (!module.PagingHandlers.TryGetValue(request.PagingCookie, out var pagingHandler))
-						{
-							throw new InvalidOperationException($"Invalid paging cookie: {request.PagingCookie}");
-						}
-
-						var nextPage = pagingHandler.GetNextPage(request.PreferredPageSize, out var isLast);
-
-						if (isLast)
-						{
-							module.PagingHandlers.TryRemove(pagingHandler.Cookie, out pagingHandler);
-							pagingHandler.Dispose();
-						}
-
-						response = new ManagerStorePagingResponse<DomInstance>(nextPage, isLast, pagingHandler.Cookie);
+						var page = ContinuePaging(request.ModuleId, request.PagingCookie, request.PreferredPageSize, out var isLast);
+						response = new ManagerStorePagingResponse<DomInstance>(page, isLast, request.PagingCookie);
 						return true;
 					}
 
@@ -643,6 +645,44 @@
 			module.Instances[request.DomInstanceId] = updatedInstance;
 
 			return new DomInstanceStatusTransitionResponseMessage { DomInstance = updatedInstance.DeepClone() };
+		}
+
+		private List<DomInstance> StartPaging(string moduleId, IQuery<DomInstance> query, long preferredPageSize, out bool isLast, out PagingCookie cookie)
+		{
+			var module = GetDomModule(moduleId);
+			var filtered = CoercingFilterEvaluator.Apply(query.Filter, module.Instances.Values);
+			var instances = query.WithFilter(new TRUEFilterElement<DomInstance>()).ExecuteInMemory(filtered).ToList();
+
+			var pagingHandler = new DomPagingHandler<DomInstance>(instances.Select(instance => instance.DeepClone()));
+			module.PagingHandlers.TryAdd(pagingHandler.Cookie, pagingHandler);
+			cookie = pagingHandler.Cookie;
+
+			return GetNextPage(module, pagingHandler, preferredPageSize, out isLast);
+		}
+
+		private List<DomInstance> ContinuePaging(string moduleId, PagingCookie cookie, long preferredPageSize, out bool isLast)
+		{
+			var module = GetDomModule(moduleId);
+
+			if (!module.PagingHandlers.TryGetValue(cookie, out var pagingHandler))
+			{
+				throw new InvalidOperationException($"Invalid paging cookie: {cookie}");
+			}
+
+			return GetNextPage(module, pagingHandler, preferredPageSize, out isLast);
+		}
+
+		private static List<DomInstance> GetNextPage(DomModule module, DomPagingHandler<DomInstance> pagingHandler, long preferredPageSize, out bool isLast)
+		{
+			var page = pagingHandler.GetNextPage(preferredPageSize, out isLast);
+
+			if (isLast)
+			{
+				module.PagingHandlers.TryRemove(pagingHandler.Cookie, out _);
+				pagingHandler.Dispose();
+			}
+
+			return page;
 		}
 
 		private DomModule GetDomModule(string moduleId)
