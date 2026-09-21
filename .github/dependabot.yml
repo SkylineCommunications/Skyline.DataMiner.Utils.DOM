@@ -13,6 +13,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "FluentAssertions"
+        versions: [ ">=8.0.0" ]
+      - dependency-name: "Verify.MSTest"
+        versions: [ ">=33.0.0" ]
     groups:
       Skyline-DataMiner-Dev:
         patterns:
