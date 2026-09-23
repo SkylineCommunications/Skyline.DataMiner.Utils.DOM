@@ -372,9 +372,17 @@
 		{
 			var pagingHelper = helper.PreparePaging(query, fields, pageSize);
 
-			while (pagingHelper.MoveToNextPage())
+			try
 			{
-				yield return pagingHelper.GetCurrentPage();
+				while (pagingHelper.MoveToNextPage())
+				{
+					yield return pagingHelper.GetCurrentPage();
+				}
+			}
+			finally
+			{
+				// The paging helper is expected to implement IDisposable in a future release.
+				(pagingHelper as IDisposable)?.Dispose();
 			}
 		}
 
@@ -382,9 +390,17 @@
 		{
 			var pagingHelper = helper.PreparePaging(filter, pageSize);
 
-			while (pagingHelper.MoveToNextPage())
+			try
 			{
-				yield return pagingHelper.GetCurrentPage();
+				while (pagingHelper.MoveToNextPage())
+				{
+					yield return pagingHelper.GetCurrentPage();
+				}
+			}
+			finally
+			{
+				// The paging helper is expected to implement IDisposable in a future release.
+				(pagingHelper as IDisposable)?.Dispose();
 			}
 		}
 
@@ -392,9 +408,17 @@
 		{
 			var pagingHelper = helper.PreparePaging(query, pageSize);
 
-			while (pagingHelper.MoveToNextPage())
+			try
 			{
-				yield return pagingHelper.GetCurrentPage();
+				while (pagingHelper.MoveToNextPage())
+				{
+					yield return pagingHelper.GetCurrentPage();
+				}
+			}
+			finally
+			{
+				// The paging helper is expected to implement IDisposable in a future release.
+				(pagingHelper as IDisposable)?.Dispose();
 			}
 		}
 	}
